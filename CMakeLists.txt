@@ -26,6 +26,8 @@ add_custom_target(
     COMMENT "${BLUE}Resource files have been successfully copied into binary directory"
 )
 
+add_compile_options(-g)
+
 add_executable("${CMAKE_PROJECT_NAME}")
 
 include(FetchContent)
@@ -92,6 +94,7 @@ set(
     SOURCES
     "${CMAKE_SOURCE_DIR}/code/main.cpp"
     "${CMAKE_SOURCE_DIR}/code/game.cpp"
+    "${CMAKE_SOURCE_DIR}/code/gamemode_manager.cpp"
     "${CMAKE_SOURCE_DIR}/code/words_database.cpp"
 )
 

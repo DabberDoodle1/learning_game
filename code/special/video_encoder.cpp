@@ -2,7 +2,8 @@
 
 #include <glad/glad.h> 
 
-VideoEncoder::VideoEncoder(const char* output_name, int width, int height, int framerate): width(width), height(height), frame_buffer(width * height * 3), frame_flipped_buffer(width * height * 3) {
+VideoEncoder::VideoEncoder(const char* output_name, int width, int height, int framerate): width(width), height(height), frame_buffer(width * height * 3), frame_flipped_buffer(width * height * 3)
+{
     const AVCodec* codec = avcodec_find_encoder(AV_CODEC_ID_H264);
     codec_context = avcodec_alloc_context3(codec);
 
