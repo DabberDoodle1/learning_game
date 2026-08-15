@@ -47,8 +47,8 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     glViewport(0, 0, m_width, m_height);
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    GamemodeManager::add_font("res/NotoSansKR-Regular.ttf", width / 12.8f / 10.0f, true);
-    GamemodeManager::add_font("res/NotoSans-Regular.ttf", width / 12.8f / 10.0f, false);
+    GamemodeManager::add_font("res/NotoSansKR-Regular.ttf", true);
+    GamemodeManager::add_font("res/BebasNeue-Regular.ttf", false);
     WordDatabase::init();
 }
 
@@ -84,62 +84,93 @@ void Game::run()
 
 void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    // Abbreviating aliases
+    using gm = GamemodeManager;
+    using st = GamemodeManager::GamemodeSettings;
+
     if (action == GLFW_PRESS) {
+        const unsigned int num_cat = 3;
+        const unsigned int df_size = st::selection[1].size();
+        const unsigned int wg_size = st::selection[2].size();
+
+        // Break early whenever focused on typing
+        if (GamemodeManager::is_typing) {
+            return;
+        }
+
         switch (key) {
             case GLFW_KEY_ESCAPE:
                 glfwSetWindowShouldClose(window, true);
-                break;
-            case GLFW_KEY_T:
-                GamemodeManager::is_KR_or_EN = !GamemodeManager::is_KR_or_EN;
+
                 break;
             case GLFW_KEY_W:
-                ++GamemodeManager::cur_cat;
+                if (++st::cur_cat > num_cat - 1) {
+                    st::cur_cat = 0;
+                }
 
                 break;
             case GLFW_KEY_S:
-                --GamemodeManager::cur_cat;
+                if (--st::cur_cat == 0xFFFFFFFF) {
+                    st::cur_cat = num_cat - 1;
+                }
 
                 break;
             case GLFW_KEY_A:
-                switch (GamemodeManager::cur_cat) {
+                switch (st::cur_cat) {
                     case 0:
-                        GamemodeManager::is_KR_or_EN = !GamemodeManager::is_KR_or_EN;
-                        GamemodeManager::sel_ind[0]  = static_cast<unsigned int>(GamemodeManager::is_KR_or_EN);
+                        gm::is_KR_or_EN = false;
+                        st::sel_ind[0]  = static_cast<unsigned int>(gm::is_KR_or_EN);
 
                         break;
                     case 1:
-                        if (++GamemodeManager::sel_ind[1] > 1) {
-                            GamemodeManager::sel_ind[1] = 0;
+                        if (--st::sel_ind[1] == 0xFFFFFFFF) {
+                            st::sel_ind[1] = 0;
                         }
 
-                        GamemodeManager::shuffle_choices(GamemodeManager::selection[1][GamemodeManager::sel_ind[1]]);
-                        if (GamemodeManager::is_inbetween_rounds) {
-                            GamemodeManager::is_inbetween_rounds = false;
+                        break;
+                    case 2:
+                        if (--st::sel_ind[2] == 0xFFFFFFFF) {
+                            st::sel_ind[2] = 0;
+                            break;
+                        }
+
+                        gm::shuffle_choices(st::selection[2][st::sel_ind[2]]);
+                        if (gm::is_inbetween_rounds) {
+                            gm::is_inbetween_rounds = false;
                         }
 
                         break;
                 }
                 break;
             case GLFW_KEY_D:
-                switch (GamemodeManager::cur_cat) {
+                switch (st::cur_cat) {
                     case 0:
-                        GamemodeManager::is_KR_or_EN = !GamemodeManager::is_KR_or_EN;
-                        GamemodeManager::sel_ind[0]  = static_cast<unsigned int>(GamemodeManager::is_KR_or_EN);
+                        gm::is_KR_or_EN = true;
+                        st::sel_ind[0]  = static_cast<unsigned int>(gm::is_KR_or_EN);
 
                         break;
                     case 1:
-                        if (--GamemodeManager::sel_ind[1] == 0xFFFFFFFF) {
-                            GamemodeManager::sel_ind[1] = 1;
+                        if (++st::sel_ind[1] > df_size - 1) {
+                            st::sel_ind[1] = df_size - 1;
                         }
 
-                        GamemodeManager::shuffle_choices(GamemodeManager::selection[1][GamemodeManager::sel_ind[1]]);
-                        if (GamemodeManager::is_inbetween_rounds) {
-                            GamemodeManager::is_inbetween_rounds = false;
+                        break;
+                    case 2:
+                        if (++st::sel_ind[2] > wg_size - 1) {
+                            st::sel_ind[2] = wg_size - 1;
+                            break;
+                        }
+
+                        gm::shuffle_choices(st::selection[2][st::sel_ind[2]]);
+                        if (gm::is_inbetween_rounds) {
+                            gm::is_inbetween_rounds = false;
                         }
 
                         break;
                 }
                 break;
+            // case GLFW_KEY_R:
+            //     gm::shuffle_choices(const char *group_name);
         }
     }
 }

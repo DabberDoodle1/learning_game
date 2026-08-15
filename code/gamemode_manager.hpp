@@ -1,48 +1,82 @@
 #pragma once
-
 #include "word_data.hpp"
 #include <imgui.h>
-#include <memory>
 #include <vector>
 
+// GAMEMODE TYPES AND DIFFICULTY settings
+// Match The Word:
+// - EASY
+//    1 word in KR/EN with 4 options in the other language and match the right one.
+// - EASY+
+//    4 words in KR/EN with 4 options in the other language and match everyone with their corresponding answer.
+//    + Conjugations
+// - MEDIUM
+//    1 word in KR/EN with textbox input to type the correct answer itself.
+// - MEDIUM+
+//    2–4 word phrases in KR/EN with textbox input.
+// - HARD
+//    MANY words in KR and EN to be matched to pre-made set of options and type in the missing ones.
+//    + Maybe with gravity.
+//
+// ARRANGE_THE_SENTENCE:
+// - EASY
+//    T.B.A.
+// - EASY+
+//    T.B.A.
+// - MEDIUM
+//    T.B.A.
+// - MEDIUM+
+//    T.B.A.
+// - HARD
+//    T.B.A.
 enum GamemodeType {
-    MULTI_CHOICE_QUIZ,
-    FILL_IN_THE_BLANK
+    MATCH_THE_WORD,
+    ARRANGE_THE_SENTENCE
 };
 
 enum DifficultyLevel {
-    EASY,
+    EASY = 0,
+    EASY_PLUS,
     MEDIUM,
-    HIGH
+    MEDIUM_PLUS,
+    HARD
 };
 
 class GamemodeManager {
 public:
-    static void add_font(const char* file_path, float size_unit, bool is_KR_or_EN);
+    static void add_font(const char* file_path, bool is_KR_or_EN);
     static void draw_gui();
     static void shuffle_choices(const char* group_name);
 
     static bool         is_inbetween_rounds;
     static bool         is_KR_or_EN;
+    static bool         is_typing;
     static GamemodeType gamemode;
 
-    static const std::unique_ptr<const char*[]> selection[];
-    static unsigned int                         cur_cat;
-    static unsigned int                         sel_ind[2];
+    // Categories:
+    // [0] -> is_KR_or_EN toggle
+    // [1] -> global difficulty toggle
+    // [2] -> group words
+    struct GamemodeSettings {
+        static unsigned int             cur_cat;      // Current selected settings category
+        static unsigned int             sel_ind[3];   // Each categories' selected option's index
+        static std::vector<const char*> selection[3]; // List of options per category
+    };
+
 private:
     static const char* draw_settings_selector();
-    static void        draw_mcq_mode(const char* group_name, DifficultyLevel difficulty);
-    static void        draw_fitb_mode(const char* group_name, DifficultyLevel difficulty);
+    static void        draw_mtw_mode(const char* group_name);
+    static void        draw_ats_mode(const char* group_name);
 
-    static ImFont* font_sizes_EN[8];
-    static ImFont* font_sizes_KR[8];
+    static ImFont* font_sizes_EN[10];
+    static ImFont* font_sizes_KR[10];
 
-    struct MCQ {
+    struct MTW {
         static const WordData* choices[4];
         static const WordData* correct;
     };
 
-    struct FITB {
+    struct ATS {
         static std::vector<std::string>     bodies;
         static std::vector<const WordData*> blanks;
     };

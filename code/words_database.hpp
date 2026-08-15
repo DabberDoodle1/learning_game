@@ -4,6 +4,8 @@
 #include <map>
 #include <vector>
 
+class GamemodeManager;
+
 class WordDatabase {
 public:
     WordDatabase() = delete;
@@ -12,8 +14,9 @@ public:
 
     static void init();
 
-    static const WordData* get_word(const char* KR_word);
+    static const WordData*                     get_word(const char* KR_word);
     static const std::vector<const WordData*>* get_word_group(const char* group_name);
+    static const std::vector<const char*>      get_keys();
 
 private:
     static std::vector<WordData> words;
