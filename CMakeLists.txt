@@ -27,6 +27,7 @@ add_custom_target(
 )
 
 add_compile_options(-g)
+# add_compile_options(-O0)
 
 add_executable("${CMAKE_PROJECT_NAME}")
 
@@ -91,6 +92,7 @@ set(
     "${CMAKE_SOURCE_DIR}/code/game.cpp"
     "${CMAKE_SOURCE_DIR}/code/gamemode_manager.cpp"
     "${CMAKE_SOURCE_DIR}/code/words_database.cpp"
+    "${CMAKE_SOURCE_DIR}/code/text_input_handler.cpp"
 )
 
 set(

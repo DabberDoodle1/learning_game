@@ -51,6 +51,7 @@ public:
     static bool         is_inbetween_rounds;
     static bool         is_KR_or_EN;
     static bool         is_typing;
+    static bool         is_typing_KR;
     static GamemodeType gamemode;
 
     // Categories:

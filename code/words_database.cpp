@@ -42,7 +42,7 @@ void WordDatabase::init()
     words.emplace_back("교수님", "Professor");
     words.emplace_back("화이트보드", "Whiteboard");
     words.emplace_back("책", "Book");
-    words.emplace_back("공책, 노트", "Notebook");
+    words.emplace_back("공책, 노트", "Notebook"); // Make the synonymous words into an array instead of large string *sigh*
     words.emplace_back("교과서", "Textbook");
     words.emplace_back("책상", "Desk");
     words.emplace_back("의자", "Chair");

@@ -3,9 +3,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui.h"
+#include "text_input_handler.hpp"
 #include "words_database.hpp"
-#include <cstring>
-#include <iostream>
 #include <random>
 
 ImFont*      GamemodeManager::font_sizes_EN[10];
@@ -13,6 +12,7 @@ ImFont*      GamemodeManager::font_sizes_KR[10];
 bool         GamemodeManager::is_inbetween_rounds = false;
 bool         GamemodeManager::is_KR_or_EN         = false;
 bool         GamemodeManager::is_typing           = false;
+bool         GamemodeManager::is_typing_KR        = true;
 GamemodeType GamemodeManager::gamemode            = MATCH_THE_WORD;
 
 unsigned int             GamemodeManager::GamemodeSettings::cur_cat    = 0;
@@ -236,38 +236,6 @@ void GamemodeManager::draw_mtw_mode(const char* group_name)
                         ImGui::EndDisabled();
                         ImGui::PopStyleColor(4);
                     } else {
-                        // if (false) {
-                        //     ImGui::InvisibleButton("##button", button_size);
-                        //
-                        //     bool is_hovered = ImGui::IsItemHovered();
-                        //
-                        //     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-                        //
-                        //     draw_list->AddRectFilled(
-                        //             ImVec2(pos[0].x - 8.0f, pos[0].y - 8.0f),
-                        //             ImVec2(pos[0].x + button_size.x + 8.0f, pos[0].y + button_size.y + 8.0f),
-                        //             is_hovered ? IM_COL32(255, 87, 87, 255) : IM_COL32(239, 239, 239, 255)
-                        //             );
-                        //
-                        //     draw_list->AddRectFilled(
-                        //             pos[0],
-                        //             ImVec2(pos[0].x + button_size.x, pos[0].y + button_size.y),
-                        //             is_hovered ? IM_COL32(239, 239, 239, 255) : IM_COL32(255, 87, 87, 255)
-                        //             );
-                        //
-                        //     draw_list->AddRectFilled(
-                        //             ImVec2(pos[0].x + 8.0f, pos[0].y + 8.0f),
-                        //             ImVec2(pos[0].x + button_size.x - 8.0f, pos[0].y + button_size.y - 8.0f),
-                        //             is_hovered ? IM_COL32(255, 87, 87, 255) : IM_COL32(239, 239, 239, 255)
-                        //             );
-                        // } else {
-                        //     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
-                        //     if (ImGui::Button(button_text, button_size)) {
-                        //         is_inbetween_rounds = true;
-                        //     }
-                        //     ImGui::PopStyleColor();
-                        // }
-
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
                         if (ImGui::Button(button_text, button_size)) {
                             is_inbetween_rounds = true;
@@ -314,24 +282,12 @@ void GamemodeManager::draw_mtw_mode(const char* group_name)
                 ImGui::SetNextItemWidth(Game::m_width * 0.6f);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.5f * size_unit, 0.5f * size_unit));
 
-                char buffer[512]{};
-                if (ImGui::InputText("##input_text", buffer, 512, ImGuiInputTextFlags_EnterReturnsTrue)) {
-                    const std::string& correct_answer = is_KR_or_EN ? MTW::correct->meaning : MTW::correct->word;
-                    if (buffer == correct_answer) {
-                        is_inbetween_rounds = true;
-                        std::memset(buffer, 0, 512);
-                    }
+                if (TextInputHandler::draw_textbox(is_KR_or_EN, MTW::correct->word, MTW::correct->meaning)) {
+                    shuffle_choices(group_name);
                 }
+
                 ImGui::PopStyleVar();
                 ImGui::PopFont();
-
-                if (ImGui::IsItemActive()) {
-                    is_typing = true;
-                }
-
-                if (ImGui::IsItemDeactivated()) {
-                    is_typing = false;
-                }
 
                 break;
             }
