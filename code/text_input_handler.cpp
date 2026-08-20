@@ -230,7 +230,23 @@ bool TextInputHandler::draw_textbox(bool is_KR_or_EN, const std::string& word, c
     bool should_shuffle = false;
 
     static std::string buffer{};
-    if (ImGui::InputText("##input_text", const_cast<char*>(buffer.c_str()), buffer.size() + 1, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly)) {
+    static ImGuiInputTextCallback input_text_cb = [](ImGuiInputTextCallbackData* data) -> int { return 0; };
+    // static ImGuiInputTextCallback input_text_cb = [](ImGuiInputTextCallbackData* data) -> int {
+    //     std::cout << buffer.size();
+    //
+    //     data->CursorPos = buffer.size();
+    //
+    //     std::cout << data->CursorPos;
+    //
+    //     return 0;
+    // };
+
+    if (ImGui::InputText(
+                "##input_text",
+                const_cast<char*>(buffer.c_str()),
+                buffer.size() + 1,
+                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly
+                )) {
         if (buffer == (is_KR_or_EN ? meaning : word)) {
             input_buffer.clear();
             buffer.clear();
@@ -649,19 +665,17 @@ std::string TextInputHandler::get_text()
 
                     break;
                 case 1:
-                    if (is_consonant && !is_batchim) {
+                    if (is_consonant) {
                         text += get_sb(curr_sb_buffer);
+                        curr_sb_count = 0;
+                    }
 
-                        curr_sb_buffer.push_back(ch);
-                        curr_sb_count = 1;
+                    curr_sb_buffer.push_back(ch);
+                    ++curr_sb_count;
 
-                        if (is_batchim) {
-                            text += get_sb(curr_sb_buffer);
-                            curr_sb_count = 0;
-                        }
-                    } else {
-                        curr_sb_buffer.push_back(ch);
-                        ++curr_sb_count;
+                    if (is_batchim) {
+                        text += get_sb(curr_sb_buffer);
+                        curr_sb_count = 0;
                     }
 
                     break;
@@ -669,6 +683,7 @@ std::string TextInputHandler::get_text()
                     if (!is_consonant) {
                         text += get_sb(curr_sb_buffer);
                     }
+
                     curr_sb_buffer.push_back(ch);
 
                     if (i < input_buffer.size() - 1) {
