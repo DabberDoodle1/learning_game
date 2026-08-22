@@ -3,6 +3,7 @@
 #include <map>
 
 std::vector<unsigned char> TextInputHandler::input_buffer;
+unsigned int               cursor_pos = 0;
 
 // EN characters to KR characters conversion(matches KR key layout on qwerty keyboard)
 // Consonants (19)  Vowels (21)  (No direct key equivalent for compound vowels and double batchim)
@@ -229,17 +230,9 @@ bool TextInputHandler::draw_textbox(bool is_KR_or_EN, const WordData* data)
 
     static std::string buffer{};
     static ImGuiInputTextCallback input_text_cb = [](ImGuiInputTextCallbackData* data) -> int { return 0; };
-    // static ImGuiInputTextCallback input_text_cb = [](ImGuiInputTextCallbackData* data) -> int {
-    //     std::cout << buffer.size();
-    //
-    //     data->CursorPos = buffer.size();
-    //
-    //     std::cout << data->CursorPos;
-    //
-    //     return 0;
-    // };
 
     if (ImGui::InputText(
+<<<<<<< HEAD
                 "##input_text",
                 const_cast<char*>(buffer.c_str()),
                 buffer.size() + 1,
@@ -253,6 +246,22 @@ bool TextInputHandler::draw_textbox(bool is_KR_or_EN, const WordData* data)
                 buffer.clear();
                 should_shuffle = true;
             }
+=======
+            "##input_text",
+            const_cast<char*>(buffer.c_str()),
+            buffer.size() + 1,
+            ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CallbackAlways,
+            [] (ImGuiInputTextCallbackData* data) -> int {
+                static int i = 0;
+                std::cout << i << '\n';
+
+                return 0;
+            })) {
+        if (buffer == (is_KR_or_EN ? meaning : word)) {
+            input_buffer.clear();
+            buffer.clear();
+            should_shuffle = true;
+>>>>>>> 0f46338 (.)
         }
     }
 
