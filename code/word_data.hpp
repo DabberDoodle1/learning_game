@@ -1,9 +1,10 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 struct WordData {
-    WordData(const char* _word, const char* _meaning): word(_word), meaning(_meaning) {}
-    std::string word;
-    std::string meaning;
+    WordData(const std::vector<std::string>& _KR, const std::vector<std::string>& _EN): KR(_KR), EN(_EN) {}
+    std::vector<std::string> KR;
+    std::vector<std::string> EN;
 };

@@ -6,6 +6,7 @@
 #include "text_input_handler.hpp"
 #include "words_database.hpp"
 #include <random>
+#include <string>
 
 ImFont*      GamemodeManager::font_sizes_EN[10];
 ImFont*      GamemodeManager::font_sizes_KR[10];
@@ -161,20 +162,20 @@ void GamemodeManager::draw_mtw_mode(const char* group_name)
             {
                 // Draw "correct" display text
                 // Draw question text
-                static const char* text;
-                static ImVec2 text_size;
+                std::string text;
+                ImVec2      text_size;
 
-                if (is_KR_or_EN) {
-                    text = MTW::correct->word.data();
-                    ImGui::PushFont(font_sizes_KR[8]);
-                } else {
-                    text = MTW::correct->meaning.data();
-                    ImGui::PushFont(font_sizes_EN[8]);
+                const std::vector<std::string>& values = is_KR_or_EN ? MTW::correct->KR : MTW::correct->EN;
+                ImFont*                         lang   = is_KR_or_EN ? font_sizes_KR[6] : font_sizes_EN[6];
+
+                for (unsigned int i = 0; i < values.size(); ++i) {
+                    text += std::to_string(i + 1) + ".) " + values[i] + '\n';
                 }
-                text_size = ImGui::CalcTextSize(text);
+                ImGui::PushFont(lang);
+                text_size = ImGui::CalcTextSize(text.c_str());
 
                 ImGui::SetCursorPos(ImVec2((Game::m_width - text_size.x) * 0.5f, Game::m_height * 0.25f - text_size.y * 0.5f));
-                ImGui::Text(text);
+                ImGui::Text(text.c_str());
 
                 ImGui::PopFont();
                 ImGui::PushFont(is_KR_or_EN ? font_sizes_EN[5] : font_sizes_KR[5]);
@@ -196,12 +197,12 @@ void GamemodeManager::draw_mtw_mode(const char* group_name)
 
                 // The actual buttons
                 for (unsigned int i = 0; i < 4; ++i) {
-                    const char* button_text;
+                    std::string button_text;
 
-                    if (is_KR_or_EN) {
-                        button_text = MTW::choices[i]->meaning.c_str();
-                    } else {
-                        button_text = MTW::choices[i]->word.c_str();
+                    const std::vector<std::string>* button_words = is_KR_or_EN ? &MTW::choices[i]->EN : &MTW::choices[i]->KR;
+
+                    for (const auto& str : *button_words) {
+                        button_text += str + '\n';
                     }
 
                     ImGui::SetCursorPos(pos[i]);
@@ -212,22 +213,22 @@ void GamemodeManager::draw_mtw_mode(const char* group_name)
                         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, MTW::choices[i] == MTW::correct ? ImVec4(0.0f, 0.6f, 0.0f, 1.0f) : ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
                         ImGui::BeginDisabled();
                         ImGui::PushID(i);
-                        ImGui::Button(button_text, button_size);
+                        ImGui::Button(button_text.c_str(), button_size);
                         ImGui::PopID();
 
                         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
                             ImGui::PushFont(is_KR_or_EN ? font_sizes_KR[3] : font_sizes_EN[3]);
 
-                            std::string text = is_KR_or_EN ? MTW::choices[i]->word : MTW::choices[i]->meaning;
-                            ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
+                            std::string hover_text       = is_KR_or_EN ? MTW::choices[i]->KR[0] : MTW::choices[i]->EN[0];
+                            ImVec2      hover_text_size  = ImGui::CalcTextSize(text.c_str());
 
-                            ImGui::SetCursorPos(ImVec2(pos[i].x + (button_size.x - text_size.x) * 0.5f, pos[i].y + button_size.y * 0.75f - text_size.y * 0.5f));
+                            ImGui::SetCursorPos(ImVec2(pos[i].x + (button_size.x - hover_text_size.x) * 0.5f, pos[i].y + button_size.y * 0.75f - hover_text_size.y * 0.5f));
                             if (!is_KR_or_EN) {
                                 ImGui::letter_spacing = 1.5f;
-                                ImGui::Text(text.c_str());
+                                ImGui::Text(hover_text.c_str());
                                 ImGui::letter_spacing = 0.0f;
                             } else {
-                                ImGui::Text(text.c_str());
+                                ImGui::Text(hover_text.c_str());
                             }
 
                             ImGui::PopFont();
@@ -237,7 +238,7 @@ void GamemodeManager::draw_mtw_mode(const char* group_name)
                         ImGui::PopStyleColor(4);
                     } else {
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
-                        if (ImGui::Button(button_text, button_size)) {
+                        if (ImGui::Button(button_text.c_str(), button_size)) {
                             is_inbetween_rounds = true;
                         }
                         ImGui::PopStyleColor();
@@ -258,13 +259,13 @@ void GamemodeManager::draw_mtw_mode(const char* group_name)
                 // Draw "correct" display text
                 // Draw question text
                 const char* text;
-                ImVec2 text_size;
+                ImVec2      text_size;
 
                 if (is_KR_or_EN) {
-                    text = MTW::correct->word.data();
+                    text = MTW::correct->KR[0].c_str();
                     ImGui::PushFont(font_sizes_KR[9]);
                 } else {
-                    text = MTW::correct->meaning.data();
+                    text = MTW::correct->EN[0].c_str();
                     ImGui::PushFont(font_sizes_EN[9]);
                 }
                 text_size = ImGui::CalcTextSize(text);
@@ -282,7 +283,7 @@ void GamemodeManager::draw_mtw_mode(const char* group_name)
                 ImGui::SetNextItemWidth(Game::m_width * 0.6f);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.5f * size_unit, 0.5f * size_unit));
 
-                if (TextInputHandler::draw_textbox(is_KR_or_EN, MTW::correct->word, MTW::correct->meaning)) {
+                if (TextInputHandler::draw_textbox(is_KR_or_EN, MTW::correct)) {
                     shuffle_choices(group_name);
                 }
 

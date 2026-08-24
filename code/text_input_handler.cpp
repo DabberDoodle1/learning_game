@@ -1,7 +1,5 @@
 #include "text_input_handler.hpp"
 #include "gamemode_manager.hpp"
-#include "imgui.h"
-#include <iostream>
 #include <map>
 
 std::vector<unsigned char> TextInputHandler::input_buffer;
@@ -225,7 +223,7 @@ const std::string get_sb(std::vector<char>& buffer)
     return target;
 }
 
-bool TextInputHandler::draw_textbox(bool is_KR_or_EN, const std::string& word, const std::string& meaning)
+bool TextInputHandler::draw_textbox(bool is_KR_or_EN, const WordData* data)
 {
     bool should_shuffle = false;
 
@@ -247,10 +245,14 @@ bool TextInputHandler::draw_textbox(bool is_KR_or_EN, const std::string& word, c
                 buffer.size() + 1,
                 ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly
                 )) {
-        if (buffer == (is_KR_or_EN ? meaning : word)) {
-            input_buffer.clear();
-            buffer.clear();
-            should_shuffle = true;
+        const std::vector<std::string>& list = is_KR_or_EN ? data->KR : data->EN;
+
+        for (const auto& item : list) {
+            if (buffer == item) {
+                input_buffer.clear();
+                buffer.clear();
+                should_shuffle = true;
+            }
         }
     }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "word_data.hpp"
 #include <string>
 #include <vector>
 
@@ -6,7 +7,7 @@ class TextInputHandler {
 public:
     TextInputHandler() = delete;
 
-    static bool        draw_textbox(bool is_KR_or_EN, const std::string& word, const std::string& meaning);
+    static bool        draw_textbox(bool is_KR_or_EN, const WordData* data);
 
 private:
     static void        add_char(bool is_KR_or_EN, char ch);

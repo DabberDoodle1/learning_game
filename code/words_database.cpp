@@ -1,6 +1,7 @@
 #include "words_database.hpp"
 #include "gamemode_manager.hpp"
 #include <iostream>
+#include <utility>
 
 std::vector<WordData> WordDatabase::words;
 std::map<const std::string, std::vector<const WordData*>> WordDatabase::word_groups;
@@ -12,207 +13,211 @@ void WordDatabase::init()
     GamemodeManager::GamemodeSettings::selection[2] = std::vector<const char*>{};
     GamemodeManager::GamemodeSettings::selection[2].reserve(4);
 
-    // Populating word database
-    // Pronouns section
-    words.emplace_back("나 / 제", "I");
-    words.emplace_back("너 / 당신", "You");
-    words.emplace_back("우리", "We, our");
-    words.emplace_back("그", "He");
-    words.emplace_back("그녀", "She");
-    words.emplace_back("이것", "This thing");
-    words.emplace_back("그것", "That thing");
+    WordData KR_EN_pairs[] = {
+        // Populating word database
+        // Pronouns section
+        { { "나", "제"   }, { "I"          } },
+        { { "너", "당신" }, { "You"        } },
+        { { "우리"       }, { "We, our"    } },
+        { { "그"         }, { "He"         } },
+        { { "그녀"       }, { "She"        } },
+        { { "이것"       }, { "This thing" } },
+        { { "그것"       }, { "That thing" } },
 
-    // Nouns section
-    words.emplace_back("사람", "Person");
-    words.emplace_back("친구", "Friend");
-    words.emplace_back("가족", "Family");
-    words.emplace_back("엄마", "Mom");
-    words.emplace_back("아빠", "Dad");
-    words.emplace_back("아이", "Child");
-    words.emplace_back("집", "House");
-    words.emplace_back("옆집", "Next Door House");
-    words.emplace_back("방", "Room");
-    words.emplace_back("문", "Door");
-    words.emplace_back("길", "Road / Street");
+        // Nouns section
+        { { "사람" }, { "Person"          } },
+        { { "친구" }, { "Friend"          } },
+        { { "가족" }, { "Family"          } },
+        { { "엄마" }, { "Mom"             } },
+        { { "아빠" }, { "Dad"             } },
+        { { "아이" }, { "Child"           } },
+        { { "집"   }, { "House"           } },
+        { { "옆집" }, { "Next Door House" } },
+        { { "방"   }, { "Room"            } },
+        { { "문"   }, { "Door"            } },
+        { { "길"   }, { "Road", "Street"  } },
 
-    words.emplace_back("학교", "School");
-    words.emplace_back("회사", "Company");
-    words.emplace_back("학생", "Student");
-    words.emplace_back("선생님", "Teacher");
-    words.emplace_back("교수님", "Professor");
-    words.emplace_back("화이트보드", "Whiteboard");
-    words.emplace_back("책", "Book");
-    words.emplace_back("공책, 노트", "Notebook"); // Make the synonymous words into an array instead of large string *sigh*
-    words.emplace_back("교과서", "Textbook");
-    words.emplace_back("책상", "Desk");
-    words.emplace_back("의자", "Chair");
-    words.emplace_back("필통", "Pencil Case");
-    words.emplace_back("볼펜", "Ballpen");
-    words.emplace_back("연필", "Pencil");
-    words.emplace_back("지우개", "Eraser");
-    words.emplace_back("자", "Ruler");
-    words.emplace_back("가위", "Scissors");
-    words.emplace_back("풀", "Glue");
-    words.emplace_back("컴퓨터", "Computer");
-    words.emplace_back("노트북", "Laptop");
-    words.emplace_back("가방", "Bag");
+        { { "학교"         }, { "School"      } },
+        { { "회사"         }, { "Company"     } },
+        { { "학생"         }, { "Student"     } },
+        { { "선생님"       }, { "Teacher"     } },
+        { { "교수님"       }, { "Professor"   } },
+        { { "화이트보드"   }, { "Whiteboard"  } },
+        { { "책"           }, { "Book"        } },
+        { { "공책", "노트" }, { "Notebook"    } },
+        { { "교과서"       }, { "Textbook"    } },
+        { { "책상"         }, { "Desk"        } },
+        { { "의자"         }, { "Chair"       } },
+        { { "필통"         }, { "Pencil Case" } },
+        { { "볼펜"         }, { "Ballpen"     } },
+        { { "연필"         }, { "Pencil"      } },
+        { { "지우개"       }, { "Eraser"      } },
+        { { "자"           }, { "Ruler"       } },
+        { { "가위"         }, { "Scissors"    } },
+        { { "풀"           }, { "Glue"        } },
+        { { "컴퓨터"       }, { "Computer"    } },
+        { { "노트북"       }, { "Laptop"      } },
+        { { "가방"         }, { "Bag"         } },
 
-    // Foods and drinks
-    words.emplace_back("물", "Water");
-    words.emplace_back("음식", "Food");
-    words.emplace_back("밥", "Meal / Cooked Rice ");
-    words.emplace_back("커피", "Coffee");
-    words.emplace_back("차", "Tea / Car");
+        // Foods and drinks
+        { { "물"   }, { "Water"                } },
+        { { "음식" }, { "Food"                 } },
+        { { "밥"   }, { "Meal", "Cooked Rice " } },
+        { { "커피" }, { "Coffee"               } },
+        { { "차"   }, { "Tea", "Car"           } },
 
-    // Temporal nouns
-    words.emplace_back("초", "Second (Time)");
-    words.emplace_back("분", "Minute");
-    words.emplace_back("시간", "Hour / Time");
-    words.emplace_back("일", "Day (Counter)");
-    words.emplace_back("날", "Day (General)");
-    words.emplace_back("주/주일", "Week");
-    words.emplace_back("달/개월", "Month (Counter)");
-    words.emplace_back("월", "Month (Calendar)");
-    words.emplace_back("년", "Year (Counter)");
-    words.emplace_back("해", "Year (General)");
-    words.emplace_back("오늘", "Today");
-    words.emplace_back("내일", "Tomorrow");
-    words.emplace_back("어제", "Yesterday");
-    words.emplace_back("일요일", "Sunday");
-    words.emplace_back("월요일", "Monday");
-    words.emplace_back("화요일", "Tuesday");
-    words.emplace_back("수요일", "Wednesday");
-    words.emplace_back("목요일", "Thursday");
-    words.emplace_back("금요일", "Friday");
-    words.emplace_back("도요일", "Saturday");
-    words.emplace_back("일월", "January");
-    words.emplace_back("이월", "February");
-    words.emplace_back("삼월", "March");
-    words.emplace_back("사월", "April");
-    words.emplace_back("오월", "May");
-    words.emplace_back("유월", "June");
-    words.emplace_back("칠월", "July");
-    words.emplace_back("탈월", "August");
-    words.emplace_back("구월", "September");
-    words.emplace_back("시월", "October");
-    words.emplace_back("십일월", "November");
-    words.emplace_back("십이월", "December");
+        // Temporal nouns
+        { { "초"         }, { "Second (Time)"    } },
+        { { "분"         }, { "Minute"           } },
+        { { "시간"       }, { "Hour", "Time"     } },
+        { { "일"         }, { "Day (Counter)"    } },
+        { { "날"         }, { "Day (General)"    } },
+        { { "주", "주일" }, { "Week"             } },
+        { { "달", "개월" }, { "Month (Counter)"  } },
+        { { "월"         }, { "Month (Calendar)" } },
+        { { "년"         }, { "Year (Counter)"   } },
+        { { "해"         }, { "Year (General)"   } },
+        { { "오늘"       }, { "Today"            } },
+        { { "내일"       }, { "Tomorrow"         } },
+        { { "어제"       }, { "Yesterday"        } },
+        { { "일요일"     }, { "Sunday"           } },
+        { { "월요일"     }, { "Monday"           } },
+        { { "화요일"     }, { "Tuesday"          } },
+        { { "수요일"     }, { "Wednesday"        } },
+        { { "목요일"     }, { "Thursday"         } },
+        { { "금요일"     }, { "Friday"           } },
+        { { "도요일"     }, { "Saturday"         } },
+        { { "일월"       }, { "January"          } },
+        { { "이월"       }, { "February"         } },
+        { { "삼월"       }, { "March"            } },
+        { { "사월"       }, { "April"            } },
+        { { "오월"       }, { "May"              } },
+        { { "유월"       }, { "June"             } },
+        { { "칠월"       }, { "July"             } },
+        { { "탈월"       }, { "August"           } },
+        { { "구월"       }, { "September"        } },
+        { { "시월"       }, { "October"          } },
+        { { "십일월"     }, { "November"         } },
+        { { "십이월"     }, { "December"         } },
 
-    // Countries
-    words.emplace_back("한국", "Korea");
+        // Countries
+        { { "한국" }, { "Korea" } },
 
-    // Generic things
-    words.emplace_back("돈", "Money");
-    words.emplace_back("이름", "Name");
+        // Generic things
+        { { "돈"   }, { "Money" } },
+        { { "이름" }, { "Name"  } },
 
-    // Abstract concepts
-    words.emplace_back("한국어", "Korean");
-    words.emplace_back("영어", "English");
+        // Abstract concepts
+        { { "한국어" }, { "Korean"  } },
+        { { "영어"   }, { "English" } },
 
-    // Verbs
-    words.emplace_back("가다", "To go");
-    words.emplace_back("오다", "To come");
-    words.emplace_back("보다", "To see / watch");
-    words.emplace_back("먹다", "To eat");
-    words.emplace_back("마시다", "To drink");
-    words.emplace_back("하다", "To do");
-    words.emplace_back("있다", "To exist / have");
-    words.emplace_back("없다", "To not exist / have");
-    words.emplace_back("자다", "To sleep");
-    words.emplace_back("일어나다", "To wake up");
-    words.emplace_back("공부하다", "To study");
-    words.emplace_back("배우다", "To learn");
-    words.emplace_back("가르치다", "To teach");
-    words.emplace_back("듣다", "To listen");
-    words.emplace_back("말하다", "To speak");
-    words.emplace_back("읽다", "To read");
-    words.emplace_back("쓰다", "To write");
-    words.emplace_back("사다", "To buy");
-    words.emplace_back("팔다", "To sell");
-    words.emplace_back("만나다", "To meet");
-    words.emplace_back("좋아하다", "To like");
-    words.emplace_back("알다", "To know");
-    words.emplace_back("모르다", "To not know");
-    words.emplace_back("만들다", "To make");
-    words.emplace_back("기다리다", "To wait");
-    words.emplace_back("그리다", "To draw");
-    words.emplace_back("살다", "To live");
-    words.emplace_back("주다", "To give");
+        // Verbs
+        { { "가다"     }, { "To go"                       } },
+        { { "오다"     }, { "To come"                     } },
+        { { "보다"     }, { "To see", "To watch"          } },
+        { { "먹다"     }, { "To eat"                      } },
+        { { "마시다"   }, { "To drink"                    } },
+        { { "하다"     }, { "To do"                       } },
+        { { "있다"     }, { "To exist", "To have"         } },
+        { { "없다"     }, { "To not exist", "To not have" } },
+        { { "자다"     }, { "To sleep"                    } },
+        { { "일어나다" }, { "To wake up"                  } },
+        { { "공부하다" }, { "To study"                    } },
+        { { "배우다"   }, { "To learn"                    } },
+        { { "가르치다" }, { "To teach"                    } },
+        { { "듣다"     }, { "To listen"                   } },
+        { { "말하다"   }, { "To speak"                    } },
+        { { "읽다"     }, { "To read"                     } },
+        { { "쓰다"     }, { "To write"                    } },
+        { { "사다"     }, { "To buy"                      } },
+        { { "팔다"     }, { "To sell"                     } },
+        { { "만나다"   }, { "To meet"                     } },
+        { { "좋아하다" }, { "To like"                     } },
+        { { "알다"     }, { "To know"                     } },
+        { { "모르다"   }, { "To not know"                 } },
+        { { "만들다"   }, { "To make"                     } },
+        { { "기다리다" }, { "To wait"                     } },
+        { { "그리다"   }, { "To draw"                     } },
+        { { "살다"     }, { "To live"                     } },
+        { { "주다"     }, { "To give"                     } },
 
-    // Modifiers
-    words.emplace_back("좋다", "Good");
-    words.emplace_back("나쁘다", "Bad");
-    words.emplace_back("크다", "Big");
-    words.emplace_back("작다", "Small");
-    words.emplace_back("많다", "Many / Plentiful");
-    words.emplace_back("적다", "Little / Few");
-    words.emplace_back("새롭다", "New");
-    words.emplace_back("젊다", "Young");
-    words.emplace_back("오래되다", "Old (object)");
-    words.emplace_back("늙다", "Old (people)");
-    words.emplace_back("빠르다", "Fast");
-    words.emplace_back("느리다", "Slow");
-    words.emplace_back("쉽다", "Easy");
-    words.emplace_back("어렵다", "Difficult");
-    words.emplace_back("잘생기다", "Handsome");
-    words.emplace_back("아름답다", "Beautiful");
-    words.emplace_back("예쁘다", "Pretty");
-    words.emplace_back("귀엽다", "Cute");
-    words.emplace_back("못생기다", "Ugly");
-    words.emplace_back("행복하다", "Happy");
-    words.emplace_back("슬프다", "Sad");
-    words.emplace_back("화나다", "Angry");
-    //words.emplace_back("", "Energetic");
-    words.emplace_back("피곤하다", "Tired");
-    //words.emplace_back("", "");
-    words.emplace_back("은은하다", "Subtle");
-    words.emplace_back("부드럽다", "Soft");
-    words.emplace_back("딱딱하다", "Hard");
-    words.emplace_back("길다", "Long");
-    words.emplace_back("짧다", "Short (Length)");
-    words.emplace_back("높다", "Tall");
-    words.emplace_back("낮다", "Short (Height)");
-    words.emplace_back("넓다", "Wide");
-    words.emplace_back("좁다", "Narrow");
-    words.emplace_back("두껍다", "Thick");
-    words.emplace_back("얇다", "Thin");
-    words.emplace_back("무겁다", "Heavy");
-    words.emplace_back("가볍다", "Light");
-    words.emplace_back("강하다", "Strong");
-    words.emplace_back("약하다", "Weak");
-    words.emplace_back("밝다", "Bright");
-    words.emplace_back("어둡다", "Dark");
-    words.emplace_back("뜨겁다", "Hot");
-    words.emplace_back("따뜻하다", "Warm");
-    words.emplace_back("차갑다", "Cold");
-    words.emplace_back("개뜻하아", "Clean");
-    words.emplace_back("더럽다", "Dirty");
-    words.emplace_back("싸다", "Cheap");
-    words.emplace_back("비싸다", "Expensive");
-    words.emplace_back("가난하다", "Poor");
-    words.emplace_back("부유하다", "Rich");
-    words.emplace_back("운이 좋다", "Lucky");
-    words.emplace_back("운이 나쁘다", "Unlucky");
+        // Modifiers
+        { { "좋다"        }, { "Good"           } },
+        { { "나쁘다"      }, { "Bad"            } },
+        { { "크다"        }, { "Big"            } },
+        { { "작다"        }, { "Small"          } },
+        { { "많다"        }, { "Many", "Plenty" } },
+        { { "적다"        }, { "Little", "Few"  } },
+        { { "새롭다"      }, { "New"            } },
+        { { "젊다"        }, { "Young"          } },
+        { { "오래되다"    }, { "Old (object)"   } },
+        { { "늙다"        }, { "Old (people)"   } },
+        { { "빠르다"      }, { "Fast"           } },
+        { { "느리다"      }, { "Slow"           } },
+        { { "쉽다"        }, { "Easy"           } },
+        { { "어렵다"      }, { "Difficult"      } },
+        { { "잘생기다"    }, { "Handsome"       } },
+        { { "아름답다"    }, { "Beautiful"      } },
+        { { "예쁘다"      }, { "Pretty"         } },
+        { { "귀엽다"      }, { "Cute"           } },
+        { { "못생기다"    }, { "Ugly"           } },
+        { { "행복하다"    }, { "Happy"          } },
+        { { "슬프다"      }, { "Sad"            } },
+        { { "화나다"      }, { "Angry"          } },
+        { { "피곤하다"    }, { "Tired"          } },
+        { { "은은하다"    }, { "Subtle"         } },
+        { { "부드럽다"    }, { "Soft"           } },
+        { { "딱딱하다"    }, { "Hard"           } },
+        { { "길다"        }, { "Long"           } },
+        { { "짧다"        }, { "Short (Length)" } },
+        { { "높다"        }, { "Tall"           } },
+        { { "낮다"        }, { "Short (Height)" } },
+        { { "넓다"        }, { "Wide"           } },
+        { { "좁다"        }, { "Narrow"         } },
+        { { "두껍다"      }, { "Thick"          } },
+        { { "얇다"        }, { "Thin"           } },
+        { { "무겁다"      }, { "Heavy"          } },
+        { { "가볍다"      }, { "Light"          } },
+        { { "강하다"      }, { "Strong"         } },
+        { { "약하다"      }, { "Weak"           } },
+        { { "밝다"        }, { "Bright"         } },
+        { { "어둡다"      }, { "Dark"           } },
+        { { "뜨겁다"      }, { "Hot"            } },
+        { { "따뜻하다"    }, { "Warm"           } },
+        { { "차갑다"      }, { "Cold"           } },
+        { { "개뜻하아"    }, { "Clean"          } },
+        { { "더럽다"      }, { "Dirty"          } },
+        { { "싸다"        }, { "Cheap"          } },
+        { { "비싸다"      }, { "Expensive"      } },
+        { { "가난하다"    }, { "Poor"           } },
+        { { "부유하다"    }, { "Rich"           } },
+        { { "운이 좋다"   }, { "Lucky"          } },
+        { { "운이 나쁘다" }, { "Unlucky"        } },
 
-    words.emplace_back("아주", "Very");
-    words.emplace_back("정말", "Really");
-    words.emplace_back("잘", "Well");
-    words.emplace_back("조금", "A little");
-    words.emplace_back("많이", "A lot");
-    words.emplace_back("빨리", "Quickly");
-    words.emplace_back("천천히", "Slowly");
-    words.emplace_back("항상", "Always");
-    words.emplace_back("자주", "Often");
-    words.emplace_back("지금", "Now");
+        { { "아주"   }, { "Very"     } },
+        { { "정말"   }, { "Really"   } },
+        { { "잘"     }, { "Well"     } },
+        { { "조금"   }, { "A little" } },
+        { { "많이"   }, { "A lot"    } },
+        { { "빨리"   }, { "Quickly"  } },
+        { { "천천히" }, { "Slowly"   } },
+        { { "항상"   }, { "Always"   } },
+        { { "자주"   }, { "Often"    } },
+        { { "지금"   }, { "Now"      } },
 
-    // Ws and Hs
-    words.emplace_back("누구", "Who");
-    words.emplace_back("언제", "When");
-    words.emplace_back("어디", "Where");
-    words.emplace_back("왜", "Why");
-    words.emplace_back("무엇", "What");
-    words.emplace_back("어느", "Which");
-    words.emplace_back("어떻게", "How");
+        // Ws and Hs
+        { { "누구"   }, { "Who"   } },
+        { { "언제"   }, { "When"  } },
+        { { "어디"   }, { "Where" } },
+        { { "왜"     }, { "Why"   } },
+        { { "무엇"   }, { "What"  } },
+        { { "어느"   }, { "Which" } },
+        { { "어떻게" }, { "How"   } },
+    };
+
+    for (const WordData& pair : KR_EN_pairs) {
+        words.emplace_back(std::move(pair));
+    }
 
     // Creating word groups centered around a theme
     // Academics group
@@ -224,7 +229,7 @@ void WordDatabase::init()
     academics.emplace_back(get_word("책"));
     academics.emplace_back(get_word("교수님"));
     academics.emplace_back(get_word("화이트보드"));
-    academics.emplace_back(get_word("공책, 노트"));
+    academics.emplace_back(get_word("공책"));
     academics.emplace_back(get_word("교과서"));
     academics.emplace_back(get_word("책상"));
     academics.emplace_back(get_word("의자"));
@@ -257,8 +262,8 @@ void WordDatabase::init()
     temporal_nouns.emplace_back(get_word("시간"));
     temporal_nouns.emplace_back(get_word("일"));
     temporal_nouns.emplace_back(get_word("날"));
-    temporal_nouns.emplace_back(get_word("주/주일"));
-    temporal_nouns.emplace_back(get_word("달/개월"));
+    temporal_nouns.emplace_back(get_word("주"));
+    temporal_nouns.emplace_back(get_word("달"));
     temporal_nouns.emplace_back(get_word("월"));
     temporal_nouns.emplace_back(get_word("년"));
     temporal_nouns.emplace_back(get_word("해"));
@@ -340,9 +345,11 @@ void WordDatabase::init()
 
 const WordData* WordDatabase::get_word(const char* word)
 {
-    for (unsigned int i = 0; i < words.size(); ++i) {
-        if (word == words[i].word) {
-            return &words[i];
+    for (const WordData& word_data : words) {
+        for (const std::string& key : word_data.KR) {
+            if (word == key) {
+                return &word_data;
+            }
         }
     }
 
