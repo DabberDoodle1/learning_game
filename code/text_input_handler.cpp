@@ -1,5 +1,6 @@
 #include "text_input_handler.hpp"
 #include "gamemode_manager.hpp"
+#include <iostream>
 #include <map>
 
 std::vector<unsigned char> TextInputHandler::input_buffer;
@@ -224,21 +225,16 @@ const std::string get_sb(std::vector<char>& buffer)
     return target;
 }
 
-bool TextInputHandler::draw_textbox(bool is_KR_or_EN, const WordData* data)
+// Medium difficulty functions
+bool TextInputHandler::draw_medium_textbox(bool is_KR_or_EN, const WordData* data)
 {
     bool should_shuffle = false;
 
     static std::string buffer{};
     static ImGuiInputTextCallback input_text_cb = [](ImGuiInputTextCallbackData* data) -> int { return 0; };
 
-    if (ImGui::InputText(
-<<<<<<< HEAD
-                "##input_text",
-                const_cast<char*>(buffer.c_str()),
-                buffer.size() + 1,
-                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly
-                )) {
-        const std::vector<std::string>& list = is_KR_or_EN ? data->KR : data->EN;
+    if (ImGui::InputText("##input_text", const_cast<char*>(buffer.c_str()), buffer.size() + 1, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly)) {
+        const std::vector<std::string>& list = is_KR_or_EN ? data->EN : data->KR;
 
         for (const auto& item : list) {
             if (buffer == item) {
@@ -246,22 +242,6 @@ bool TextInputHandler::draw_textbox(bool is_KR_or_EN, const WordData* data)
                 buffer.clear();
                 should_shuffle = true;
             }
-=======
-            "##input_text",
-            const_cast<char*>(buffer.c_str()),
-            buffer.size() + 1,
-            ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CallbackAlways,
-            [] (ImGuiInputTextCallbackData* data) -> int {
-                static int i = 0;
-                std::cout << i << '\n';
-
-                return 0;
-            })) {
-        if (buffer == (is_KR_or_EN ? meaning : word)) {
-            input_buffer.clear();
-            buffer.clear();
-            should_shuffle = true;
->>>>>>> 0f46338 (.)
         }
     }
 
@@ -272,11 +252,9 @@ bool TextInputHandler::draw_textbox(bool is_KR_or_EN, const WordData* data)
             ImGuiKey key = static_cast<ImGuiKey>(i);
 
             if (ImGui::IsKeyPressed(key)) {
-                char ch = 'a' + key - ImGuiKey_A;
+                char ch = key - ImGuiKey_A;
 
-                if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
-                    ch -= 'a' - 'A';
-                }
+                ch += ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift) ? 'A' : 'a';
 
                 add_char(GamemodeManager::is_typing_KR, ch);
                 buffer = get_text();
@@ -695,6 +673,14 @@ std::string TextInputHandler::get_text()
                         text += get_sb(curr_sb_buffer);
                     }
 
+                    if (ch == 'Q' | ch == 'W' || ch == 'E') {
+                        text += get_sb(curr_sb_buffer);
+                        curr_sb_buffer.push_back(ch);
+                        curr_sb_count = 1;
+
+                        break;
+                    }
+
                     curr_sb_buffer.push_back(ch);
 
                     if (i < input_buffer.size() - 1) {
@@ -746,4 +732,9 @@ std::string TextInputHandler::get_text()
     }
 
     return text;
+}
+
+bool TextInputHandler::draw_medium_plus_textbox(bool is_KR_or_EN, const WordData *data)
+{
+    ;
 }

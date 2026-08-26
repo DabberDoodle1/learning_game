@@ -44,14 +44,14 @@ enum DifficultyLevel {
 
 class GamemodeManager {
 public:
-    static void add_font(const char* file_path, bool is_KR_or_EN);
+    static void init(const char* KR_path, const char* EN_path, float scaling_unit);
     static void draw_gui();
-    static void shuffle_choices(const char* group_name);
 
     static bool         is_inbetween_rounds;
     static bool         is_KR_or_EN;
     static bool         is_typing;
     static bool         is_typing_KR;
+    static bool         should_shuffle_choices;
     static GamemodeType gamemode;
 
     // Categories:
@@ -69,12 +69,19 @@ private:
     static void        draw_mtw_mode(const char* group_name);
     static void        draw_ats_mode(const char* group_name);
 
-    static ImFont* font_sizes_EN[10];
-    static ImFont* font_sizes_KR[10];
+    static ImFont* font_EN;
+    static ImFont* font_KR;
+    static float   font_sizes[10];
 
     struct MTW {
-        static const WordData* choices[4];
-        static const WordData* correct;
+        static void draw_easy(const WordData* (&choices)[4], const WordData* correct);
+        static void draw_easy_plus(const WordData* (&choices)[4]);
+        static void draw_medium(const char* group_name, const WordData*& correct);
+        static void draw_medium_plus();
+        static void draw_hard();
+
+        static void shuffle_choices(const char* group_name, const WordData* (&choices)[4]);
+        static void shuffle_choices(const char* group_name, const WordData*& correct);
     };
 
     struct ATS {

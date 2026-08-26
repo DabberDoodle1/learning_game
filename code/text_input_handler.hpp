@@ -7,7 +7,8 @@ class TextInputHandler {
 public:
     TextInputHandler() = delete;
 
-    static bool        draw_textbox(bool is_KR_or_EN, const WordData* data);
+    static bool         draw_medium_textbox(bool is_KR_or_EN, const WordData* data);
+    static bool         draw_medium_plus_textbox(bool is_KR_or_EN, const WordData* data);
 
     static unsigned int cursor_pos;
 

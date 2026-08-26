@@ -3,7 +3,7 @@
 #include <iostream>
 #include <utility>
 
-std::vector<WordData> WordDatabase::words;
+std::vector<WordData>                                     WordDatabase::words;
 std::map<const std::string, std::vector<const WordData*>> WordDatabase::word_groups;
 
 void WordDatabase::init()
@@ -206,13 +206,13 @@ void WordDatabase::init()
         { { "지금"   }, { "Now"      } },
 
         // Ws and Hs
-        { { "누구"   }, { "Who"   } },
-        { { "언제"   }, { "When"  } },
-        { { "어디"   }, { "Where" } },
-        { { "왜"     }, { "Why"   } },
-        { { "무엇"   }, { "What"  } },
-        { { "어느"   }, { "Which" } },
-        { { "어떻게" }, { "How"   } },
+        { { "누구"       }, { "Who"   } },
+        { { "언제"       }, { "When"  } },
+        { { "어디"       }, { "Where" } },
+        { { "왜"         }, { "Why"   } },
+        { { "무엇", "뭐" }, { "What"  } },
+        { { "어느"       }, { "Which" } },
+        { { "어떻게"     }, { "How"   } },
     };
 
     for (const WordData& pair : KR_EN_pairs) {

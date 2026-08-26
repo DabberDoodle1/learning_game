@@ -47,15 +47,12 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     glViewport(0, 0, m_width, m_height);
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    GamemodeManager::add_font("res/NotoSansKR-Regular.ttf", true);
-    GamemodeManager::add_font("res/BebasNeue-Regular.ttf", false);
+    GamemodeManager::init("res/BebasNeue-Regular.ttf", "res/NotoSansKR-Regular.ttf", m_width * 0.0085f);
     WordDatabase::init();
 }
 
 void Game::run()
 {
-    GamemodeManager::shuffle_choices("Academics");
-
 #ifdef VIDEO_RECORDING
     VideoEncoder encoder("/home/DesiresDeepDown/Videos/output.mp4", m_width, m_height, 60);
 #endif
@@ -134,7 +131,7 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
                             break;
                         }
 
-                        gm::shuffle_choices(st::selection[2][st::sel_ind[2]]);
+                        gm::should_shuffle_choices = true;
                         if (gm::is_inbetween_rounds) {
                             gm::is_inbetween_rounds = false;
                         }
@@ -161,7 +158,7 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
                             break;
                         }
 
-                        gm::shuffle_choices(st::selection[2][st::sel_ind[2]]);
+                        gm::should_shuffle_choices = true;
                         if (gm::is_inbetween_rounds) {
                             gm::is_inbetween_rounds = false;
                         }
