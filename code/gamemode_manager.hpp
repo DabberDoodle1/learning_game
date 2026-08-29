@@ -50,7 +50,6 @@ public:
     static bool         is_inbetween_rounds;
     static bool         is_KR_or_EN;
     static bool         is_typing;
-    static bool         is_typing_KR;
     static bool         should_shuffle_choices;
     static GamemodeType gamemode;
 
@@ -75,7 +74,7 @@ private:
 
     struct MTW {
         static void draw_easy(const WordData* (&choices)[4], const WordData* correct);
-        static void draw_easy_plus(const WordData* (&choices)[4]);
+        static void draw_easy_plus(const WordData *(&left_choices)[4], const WordData *(&right_choices)[4]);
         static void draw_medium(const char* group_name, const WordData*& correct);
         static void draw_medium_plus();
         static void draw_hard();

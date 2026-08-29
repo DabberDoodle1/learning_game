@@ -1,9 +1,12 @@
 #include "gamemode_manager.hpp"
 #include "game.hpp"
+#include "imgui.h"
 #include "text_input_handler.hpp"
 #include "words_database.hpp"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <random>
 
@@ -16,7 +19,6 @@ float                        GamemodeManager::font_sizes[10];
 bool                         GamemodeManager::is_inbetween_rounds    = false;
 bool                         GamemodeManager::is_KR_or_EN            = false;
 bool                         GamemodeManager::is_typing              = false;
-bool                         GamemodeManager::is_typing_KR           = true;
 bool                         GamemodeManager::should_shuffle_choices = true;
 GamemodeType                 GamemodeManager::gamemode               = MATCH_THE_WORD;
 
@@ -59,7 +61,7 @@ void GamemodeManager::draw_gui()
     ImGui::SetNextWindowSize(ImVec2(Game::m_width, Game::m_height));
     ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_FirstUseEver);
 
-    if (!ImGui::Begin("Hello", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar)) {
+    if (!ImGui::Begin("Hello", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
         ImGui::End();
         return;
     }
@@ -139,35 +141,44 @@ const char* GamemodeManager::draw_settings_selector()
 void GamemodeManager::draw_mtw_mode(const char* group_name)
 {
     static const WordData* easy_choices[4];
+    static const WordData* right_choices[4];
     static const WordData* correct;
     static bool            is_first_call = true;
+    static std::mt19937    gen(std::random_device{}());
 
     auto repick_correct = []() {
         std::uniform_int_distribution<int> four(0, 3);
-        std::mt19937                       gen(std::random_device{}());
 
-        correct = easy_choices[four(gen)];
+        const WordData* temp = easy_choices[four(gen)];
+
+        while (temp == correct) {
+            temp = easy_choices[four(gen)];
+        }
+
+        correct = temp;
     };
 
     if (is_first_call) {
         MTW::shuffle_choices(group_name, easy_choices);
+        std::memcpy(right_choices, easy_choices, sizeof(easy_choices));
+        std::shuffle(std::begin(right_choices), std::end(right_choices), gen);
         repick_correct();
 
         is_first_call = false;
     }
 
+    // For when word groups are changed and choices and such have to be reset externally
     if (should_shuffle_choices) {
-        MTW::shuffle_choices(GamemodeSettings::selection[2][GamemodeSettings::sel_ind[2]], easy_choices);
+        MTW::shuffle_choices(group_name, easy_choices);
+        std::memcpy(right_choices, easy_choices, sizeof(easy_choices));
+        std::shuffle(std::begin(right_choices), std::end(right_choices), gen);
         repick_correct();
 
         should_shuffle_choices = false;
     }
 
-    DifficultyLevel difficulty = static_cast<DifficultyLevel>(GamemodeSettings::GamemodeSettings::sel_ind[1]);
-
-    switch (difficulty) {
+    switch (static_cast<DifficultyLevel>(GamemodeSettings::GamemodeSettings::sel_ind[1])) {
         case EASY:
-        case EASY_PLUS:
             if (is_inbetween_rounds) {
                 ImGui::SetCursorPos(ImVec2(0.0f, 0.0f));
                 if (ImGui::InvisibleButton("##prompt_continue", ImVec2(Game::m_width, Game::m_height))) {
@@ -177,12 +188,11 @@ void GamemodeManager::draw_mtw_mode(const char* group_name)
                     is_inbetween_rounds = false;
                 }
             }
+            MTW::draw_easy(easy_choices, correct);
 
-            if (difficulty == EASY) {
-                MTW::draw_easy(easy_choices, correct);
-            } else {
-                //MTW::draw_easy_plus(easy_choices);
-            }
+            break;
+        case EASY_PLUS:
+            MTW::draw_easy_plus(easy_choices, right_choices);
 
             break;
         case MEDIUM:
@@ -325,46 +335,127 @@ void GamemodeManager::MTW::draw_easy(const WordData* (&choices)[4], const WordDa
     ImGui::PopFont();
 }
 
-void GamemodeManager::MTW::draw_easy_plus(const WordData *(&choices)[4])
+void GamemodeManager::MTW::draw_easy_plus(const WordData *(&left_choices)[4], const WordData *(&right_choices)[4])
 {
     // Left and right side widget variables
-    static const float  gap         = 15.0f * DELTA_SPACE_WIDTH;
-    static const ImVec2 widget_size = ImVec2(Game::m_width * 0.3f, (Game::m_height * 0.8f - 3 * gap) * 0.25f);
+    static const float  gap         = 25.0f * DELTA_SPACE_WIDTH;
+    static const ImVec2 widget_size = ImVec2(Game::m_width * 0.25f, (Game::m_height * 0.75f - 3 * gap) * 0.25f);
     static const ImVec2 left_pos[4] = {
-        ImVec2(Game::m_width * 0.15f, Game::m_height * 0.1f),
-        ImVec2(Game::m_width * 0.15f, Game::m_height * 0.1f + (widget_size.y + gap)),
-        ImVec2(Game::m_width * 0.15f, Game::m_height * 0.1f + (widget_size.y + gap) * 2.0f),
-        ImVec2(Game::m_width * 0.15f, Game::m_height * 0.1f + (widget_size.y + gap) * 3.0f)
+        ImVec2(Game::m_width * 0.15f, Game::m_height * 0.125f),
+        ImVec2(Game::m_width * 0.15f, Game::m_height * 0.125f + (widget_size.y + gap)),
+        ImVec2(Game::m_width * 0.15f, Game::m_height * 0.125f + (widget_size.y + gap) * 2.0f),
+        ImVec2(Game::m_width * 0.15f, Game::m_height * 0.125f + (widget_size.y + gap) * 3.0f)
     };
     static const ImVec2 right_pos[4] = {
-        ImVec2(Game::m_width * 0.85f - widget_size.x, Game::m_height * 0.1f),
-        ImVec2(Game::m_width * 0.85f - widget_size.x, Game::m_height * 0.1f + (widget_size.y + gap)),
-        ImVec2(Game::m_width * 0.85f - widget_size.x, Game::m_height * 0.1f + (widget_size.y + gap) * 2.0f),
-        ImVec2(Game::m_width * 0.85f - widget_size.x, Game::m_height * 0.1f + (widget_size.y + gap) * 3.0f),
+        ImVec2(Game::m_width * 0.85f - widget_size.x, Game::m_height * 0.125f),
+        ImVec2(Game::m_width * 0.85f - widget_size.x, Game::m_height * 0.125f + (widget_size.y + gap)),
+        ImVec2(Game::m_width * 0.85f - widget_size.x, Game::m_height * 0.125f + (widget_size.y + gap) * 2.0f),
+        ImVec2(Game::m_width * 0.85f - widget_size.x, Game::m_height * 0.125f + (widget_size.y + gap) * 3.0f),
     };
 
     const auto& EN_pos = is_KR_or_EN ? left_pos  : right_pos;
     const auto& KR_pos = is_KR_or_EN ? right_pos : left_pos;
 
-    const auto& left_labels  = is_KR_or_EN ? choices[0]->EN : choices[0]->KR;
-    const auto& right_labels = is_KR_or_EN ? choices[0]->KR : choices[0]->EN;
+    static int curr_selected    = -1;
+    static int left_partners[4] = {
+        -1,
+        -1,
+        -1,
+        -1
+    };
+    static const ImVec4 colors[4][3] = {
+        ImVec4(0.75f, 0.0f,  0.0f,  1.0f), ImVec4(0.8f, 0.0f, 0.0f, 1.0f), ImVec4(0.9f, 0.0f, 0.0f, 1.0f),
+        ImVec4(0.0f,  0.75f, 0.0f,  1.0f), ImVec4(0.0f, 0.8f, 0.0f, 1.0f), ImVec4(0.0f, 0.9f, 0.0f, 1.0f),
+        ImVec4(0.0f,  0.0f,  0.75f, 1.0f), ImVec4(0.0f, 0.0f, 0.8f, 1.0f), ImVec4(0.0f, 0.0f, 0.9f, 1.0f),
+        ImVec4(0.75f, 0.75f, 0.0f,  1.0f), ImVec4(0.8f, 0.8f, 0.0f, 1.0f), ImVec4(0.9f, 0.9f, 0.0f, 1.0f),
+    };
 
-    // Draw EN side
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
+    // Draw left side
+    ImGui::PushFont(is_KR_or_EN ? GamemodeManager::font_EN : GamemodeManager::font_KR, GamemodeManager::font_sizes[5]);
     for (unsigned int i = 0; i < 4; ++i) {
         ImGui::SetCursorPos(left_pos[i]);
-        if (ImGui::Button(left_labels[i].c_str(), widget_size)) {
-            std::cout << "L " << i << '\n';
-        }
-    }
 
-    // Draw KR side
-    for (unsigned int i = 0; i < 4; ++i) {
-        ImGui::SetCursorPos(left_pos[i]);
-        if (ImGui::Button(right_labels[i].c_str(), widget_size)) {
-            std::cout << "R " << i << '\n';
+        bool   is_highlighted = left_partners[i] != -1 || curr_selected == i;
+        ImVec4 curr_color(0.0f, 0.5f, 0.5f, 1.0f);
+
+        ImGui::PushStyleColor(ImGuiCol_Button,        is_highlighted ? colors[i][0] : curr_color);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, is_highlighted ? colors[i][1] : curr_color);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  is_highlighted ? colors[i][2] : curr_color);
+        if (ImGui::Button(is_KR_or_EN ? left_choices[i]->EN[0].c_str() : left_choices[i]->KR[0].c_str(), widget_size)) {
+            if (curr_selected == i) {
+                curr_selected = -1;
+            } else {
+                curr_selected = i;
+            }
         }
+        ImGui::PopStyleColor(3);
     }
+    ImGui::PopFont();
+
+    // Draw right side
+    ImGui::PushFont(is_KR_or_EN ? GamemodeManager::font_KR : GamemodeManager::font_EN, GamemodeManager::font_sizes[5]);
+    for (unsigned int i = 0; i < 4; ++i) {
+        ImGui::SetCursorPos(right_pos[i]);
+
+        bool   is_highlighted    = false;
+        int    highlighted_index = -1;
+        ImVec4 curr_color(0.0f, 0.5f, 0.5f, 1.0f);
+
+        for (unsigned int j = 0; j < 4; ++j) {
+            if (left_partners[j] == i) {
+                is_highlighted    = true;
+                highlighted_index = j;
+            }
+        }
+
+        ImGui::PushStyleColor(ImGuiCol_Button,        is_highlighted ? colors[highlighted_index][0] : curr_color);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, is_highlighted ? colors[highlighted_index][1] : curr_color);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  is_highlighted ? colors[highlighted_index][2] : curr_color);
+        if (ImGui::Button(is_KR_or_EN ? right_choices[i]->KR[0].c_str() : right_choices[i]->EN[0].c_str(), widget_size)) {
+            if (curr_selected != -1) {
+                left_partners[curr_selected] = (left_partners[curr_selected] == i) ? -1 : i;
+
+                for (unsigned int j = 0; j < 4; ++j) {
+                    if (curr_selected == j) {
+                        continue;
+                    }
+
+                    if (left_partners[j] == left_partners[curr_selected]) {
+                        left_partners[j] = -1;
+                    }
+                }
+
+                curr_selected = -1;
+            }
+
+            bool is_fully_chosen = true;
+            for (unsigned int j = 0; j < 4; ++j) {
+                if (left_partners[j] == -1) {
+                    is_fully_chosen = false;
+                    break;
+                }
+            }
+
+            if (is_fully_chosen) {
+                bool is_all_correct = true;
+
+                for (unsigned int j = 0; j < 4; ++j) {
+                    if (left_choices[j] != right_choices[left_partners[j]]) {
+                        is_all_correct = false;
+                        break;
+                    }
+                }
+
+                if (is_all_correct) {
+                    std::fill(std::begin(left_partners), std::end(left_partners), -1);
+
+                    should_shuffle_choices = true;
+                }
+            }
+        }
+        ImGui::PopStyleColor(3);
+    }
+    ImGui::PopFont();
 }
 
 void GamemodeManager::MTW::draw_medium(const char* group_name, const WordData*& correct)
@@ -389,14 +480,12 @@ void GamemodeManager::MTW::draw_medium(const char* group_name, const WordData*& 
     ImGui::PopFont();
     ImGui::PushFont(is_KR_or_EN ? font_EN : font_KR, font_sizes[7]);
 
-    static const float size_unit      = Game::m_width * 0.0085f;
-    static const float textbox_height = ImGui::GetFrameHeight();
+    static const float  textbox_width = Game::m_width * 0.6f;
+    static const ImVec2 pos           = ImVec2(Game::m_width * 0.2f, Game::m_height * 0.6875f - ImGui::GetFrameHeight() * 0.5f);
+    static const ImVec2 padding       = ImVec2(1.5f * Game::m_width * 0.0085f, 0.5f * Game::m_width * 0.0085f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, padding);
 
-    ImGui::SetCursorPos(ImVec2(Game::m_width * 0.2f, Game::m_height * 0.6875f - textbox_height * 0.5f));
-    ImGui::SetNextItemWidth(Game::m_width * 0.6f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.5f * size_unit, 0.5f * size_unit));
-
-    if (TextInputHandler::draw_medium_textbox(is_KR_or_EN, correct)) {
+    if (TextInputHandler::draw_medium_textbox(correct, textbox_width, pos)) {
         shuffle_choices(group_name, correct);
     }
 

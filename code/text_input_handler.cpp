@@ -1,5 +1,7 @@
 #include "text_input_handler.hpp"
+#include "game.hpp"
 #include "gamemode_manager.hpp"
+#include "imgui.h"
 #include <iostream>
 #include <map>
 
@@ -226,27 +228,48 @@ const std::string get_sb(std::vector<char>& buffer)
 }
 
 // Medium difficulty functions
-bool TextInputHandler::draw_medium_textbox(bool is_KR_or_EN, const WordData* data)
+bool TextInputHandler::draw_medium_textbox(const WordData* correct, float width, ImVec2 pos)
 {
     bool should_shuffle = false;
 
-    static std::string buffer{};
-    static ImGuiInputTextCallback input_text_cb = [](ImGuiInputTextCallbackData* data) -> int { return 0; };
+    static std::string            buffer{};
+    static ImGuiInputTextCallback input_text_cb = [](ImGuiInputTextCallbackData* correct) -> int { return 0; };
 
-    if (ImGui::InputText("##input_text", const_cast<char*>(buffer.c_str()), buffer.size() + 1, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly)) {
-        const std::vector<std::string>& list = is_KR_or_EN ? data->EN : data->KR;
+    static const ImVec2 size = ImVec2(width, ImGui::GetFrameHeight());
 
-        for (const auto& item : list) {
-            if (buffer == item) {
-                input_buffer.clear();
-                buffer.clear();
-                should_shuffle = true;
-            }
-        }
-    }
-
-    if (ImGui::IsItemActive()) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
+    ImGui::SetCursorPos(pos);
+    ImGui::PushID("input_text");
+    if (ImGui::Button(buffer.c_str(), size)) {
         GamemodeManager::is_typing = true;
+    }
+    ImGui::PopID();
+    ImGui::PopStyleColor(3);
+
+    if (GamemodeManager::is_typing) {
+        static ImVec2 exit_pos[4] = {
+            ImVec2(0.0f, 0.0f),
+            ImVec2(0.0f, pos.y),
+            ImVec2(pos.x + size.x, pos.y),
+            ImVec2(0.0f, pos.y + size.y)
+        };
+        static ImVec2 exit_sizes[4] = {
+            ImVec2(width / 6.0f * 10.0f, pos.y),
+            ImVec2(pos.x, size.y),
+            ImVec2(pos.x, size.y),
+            ImVec2(width / 6.0f * 10.0f, (pos.y + ImGui::GetFrameHeight() * 0.5f) / 0.6875f * 0.3125f - ImGui::GetFrameHeight() * 0.5f)
+        };
+
+        for (unsigned int i = 0; i < 4; ++i) {
+            ImGui::SetCursorPos(exit_pos[i]);
+            ImGui::PushID(i);
+            if (ImGui::InvisibleButton("", exit_sizes[i])) {
+                GamemodeManager::is_typing = false;
+            }
+            ImGui::PopID();
+        }
 
         for (unsigned int i = ImGuiKey_A; i <= ImGuiKey_Z; ++i) {
             ImGuiKey key = static_cast<ImGuiKey>(i);
@@ -256,23 +279,36 @@ bool TextInputHandler::draw_medium_textbox(bool is_KR_or_EN, const WordData* dat
 
                 ch += ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift) ? 'A' : 'a';
 
-                add_char(GamemodeManager::is_typing_KR, ch);
+                add_char(GamemodeManager::is_KR_or_EN, ch);
                 buffer = get_text();
                 break;
             }
+        }
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
+            add_char(false, ' ');
+            buffer = get_text();
         }
 
         if (ImGui::IsKeyPressed(ImGuiKey_Backspace)) {
             delete_char();
             buffer = get_text();
         }
-    }
 
-    if (ImGui::IsItemDeactivated()) {
-        if (should_shuffle) {
-            ImGui::SetKeyboardFocusHere(-1);
-        } else {
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             GamemodeManager::is_typing = false;
+        }
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Enter)) {
+            const std::vector<std::string>& list = GamemodeManager::is_KR_or_EN ? correct->EN : correct->KR;
+
+            for (const auto& item : list) {
+                if (buffer == item) {
+                    input_buffer.clear();
+                    buffer.clear();
+                    should_shuffle = true;
+                }
+            }
         }
     }
 
@@ -295,26 +331,26 @@ void TextInputHandler::delete_char()
             case '(':                                     // ㅟ (nl)
             case ')':                                     // ㅝ (nj)
             case '[':                                     // ㅞ (np)
-                input_buffer.push_back('n' & 0b10000000);
+                input_buffer.push_back('n' | 0b10000000);
 
                 break;
             case ']':                                     // ㅚ (hl)
             case '{':                                     // ㅘ (hk)
             case '}':                                     // ㅙ (ho)
-                input_buffer.push_back('h' & 0b10000000);
+                input_buffer.push_back('h' | 0b10000000);
 
                 break;
             case '+':                                     // ㅢ (ml)
-                input_buffer.push_back('m' & 0b10000000);
+                input_buffer.push_back('m' | 0b10000000);
 
                 break;
             case '`':                                     // ㄳ (rt)
-                input_buffer.push_back('r' & 0b10000000);
+                input_buffer.push_back('r' | 0b10000000);
 
                 break;
             case '1':                                     // ㄵ (sw)
             case '2':                                     // ㄶ (sg)
-                input_buffer.push_back('s' & 0b10000000);
+                input_buffer.push_back('s' | 0b10000000);
 
                 break;
             case '3':                                     // ㄺ (fr)
@@ -324,11 +360,11 @@ void TextInputHandler::delete_char()
             case '7':                                     // ㄾ (fx)
             case '8':                                     // ㄿ (fv)
             case '9':                                     // ㅀ (fg)
-                input_buffer.push_back('f' & 0b10000000);
+                input_buffer.push_back('f' | 0b10000000);
 
                 break;
             case '0':                                     // ㅄ (qt)
-                input_buffer.push_back('q' & 0b10000000);
+                input_buffer.push_back('q' | 0b10000000);
 
                 break;
         }
@@ -337,271 +373,271 @@ void TextInputHandler::delete_char()
     }
 }
 
-void TextInputHandler::add_char(bool is_KR, char ch)
+void TextInputHandler::add_char(bool is_KR_or_EN, char ch)
 {
     unsigned char value = 0;
 
-    value |= is_KR ? 0b10000000 : 0 ;
+    value |= is_KR_or_EN ? 0 : 0b10000000;
     value |= ch;
 
-    if (is_KR) {
-        static const char vowel_keys[] = { 'y', 'u', 'i', 'o', 'O', 'p', 'P', 'h', 'j', 'k', 'l', 'b', 'n', 'm' };
-        
-        bool is_a_vowel = false;
-        for (char key : vowel_keys) {
-            if (ch == key) {
-                is_a_vowel = true;
-            }
-        }
-
-        const char prev = (input_buffer.empty() ? '-' : input_buffer.back()) & 0b01111111 ;
-
-        switch (prev) {
-            case 'r':
-                if (ch == 't') {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('`' | 0b10000000);     // ㄳ
-                } else {
-                    input_buffer.push_back(value);
-                }
-
-                break;
-            case 's':
-                switch (ch) {
-                    case 'w':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('1' | 0b10000000); // ㄵ
-
-                        break;
-                    case 'g':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('2' | 0b10000000); // ㄶ
-
-                        break;
-                    default:
-                        input_buffer.push_back(value);
-
-                        break;
-                }
-
-                break;
-            case 'f':
-                switch (ch) {
-                    case 'r':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('3' | 0b10000000); // ㄺ
-
-                        break;
-                    case 'a':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('4' | 0b10000000); // ㄻ
-
-                        break;
-                    case 'q':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('5' | 0b10000000); // ㄼ
-
-                        break;
-                    case 't':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('6' | 0b10000000); // ㄽ
-
-                        break;
-                    case 'x':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('7' | 0b10000000); // ㄾ
-
-                        break;
-                    case 'v':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('8' | 0b10000000); // ㄿ
-
-                        break;
-                    case 'g':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('9' | 0b10000000); // ㅀ
-
-                        break;
-                    default:
-                        input_buffer.push_back(value);
-
-                        break;
-                }
-
-                break;
-            case 'q':
-                if (ch == 't') {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('0' | 0b10000000);     // ㅄ
-                } else {
-                    input_buffer.push_back(value);
-                }
-
-                break;
-            case 'h':
-                switch (ch) {
-                    case 'k':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('{' | 0b10000000); // ㅘ
-
-                        break;
-                    case 'o':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('}' | 0b10000000); // ㅙ
-
-                        break;
-                    case 'l':
-                        input_buffer.pop_back();
-                        input_buffer.push_back(']' | 0b10000000); // ㅚ
-
-                        break;
-                    default:
-                        input_buffer.push_back(value);
-
-                        break;
-                }
-
-                break;
-            case 'n':
-                switch (ch) {
-                    case 'j':
-                        input_buffer.pop_back();
-                        input_buffer.push_back(')' | 0b10000000); // ㅝ
-
-                        break;
-                    case 'p':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('[' | 0b10000000); // ㅞ
-
-                        break;
-                    case 'l':
-                        input_buffer.pop_back();
-                        input_buffer.push_back('(' | 0b10000000); // ㅟ
-
-                        break;
-                    default:
-                        input_buffer.push_back(value);
-
-                        break;
-                }
-
-                break;
-            case 'm':
-                if (ch == 'l') {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('+' | 0b10000000); // ㅢ
-                } else {
-                    input_buffer.push_back(value);
-                }
-
-                break;
-            case '`':                            // ㄳ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('r' | 0b10000000);
-                    input_buffer.push_back('t' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            case '1':                            // ㄵ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('s' | 0b10000000);
-                    input_buffer.push_back('w' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            case '2':                            // ㄶ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('s' | 0b10000000);
-                    input_buffer.push_back('g' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            case '3':                            // ㄺ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('f' | 0b10000000);
-                    input_buffer.push_back('r' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            case '4':                            // ㄻ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('f' | 0b10000000);
-                    input_buffer.push_back('a' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            case '5':                            // ㄼ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('f' | 0b10000000);
-                    input_buffer.push_back('q' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            case '6':                            // ㄽ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('f' | 0b10000000);
-                    input_buffer.push_back('t' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            case '7':                            // ㄾ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('f' | 0b10000000);
-                    input_buffer.push_back('x' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            case '8':                            // ㄿ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('f' | 0b10000000);
-                    input_buffer.push_back('v' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            case '9':                            // ㅀ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('f' | 0b10000000);
-                    input_buffer.push_back('g' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            case '0':                            // ㅄ
-                if (is_a_vowel) {
-                    input_buffer.pop_back();
-                    input_buffer.push_back('q' | 0b10000000);
-                    input_buffer.push_back('t' | 0b10000000);
-                }
-                input_buffer.push_back(value);
-
-                break;
-            default:
-                input_buffer.push_back(value);
-
-                break;
-        }
-
-    } else {
+    if (is_KR_or_EN) {
         input_buffer.push_back(value);
+        return;
+    }
+
+    static const char vowel_keys[] = { 'y', 'u', 'i', 'o', 'O', 'p', 'P', 'h', 'j', 'k', 'l', 'b', 'n', 'm' };
+
+    bool is_a_vowel = false;
+    for (char key : vowel_keys) {
+        if (ch == key) {
+            is_a_vowel = true;
+        }
+    }
+
+    const char prev = (input_buffer.empty() ? '-' : input_buffer.back()) & 0b01111111 ;
+
+    switch (prev) {
+        case 'r':
+            if (ch == 't') {
+                input_buffer.pop_back();
+                input_buffer.push_back('`' | 0b10000000);     // ㄳ
+            } else {
+                input_buffer.push_back(value);
+            }
+
+            break;
+        case 's':
+            switch (ch) {
+                case 'w':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('1' | 0b10000000); // ㄵ
+
+                    break;
+                case 'g':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('2' | 0b10000000); // ㄶ
+
+                    break;
+                default:
+                    input_buffer.push_back(value);
+
+                    break;
+            }
+
+            break;
+        case 'f':
+            switch (ch) {
+                case 'r':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('3' | 0b10000000); // ㄺ
+
+                    break;
+                case 'a':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('4' | 0b10000000); // ㄻ
+
+                    break;
+                case 'q':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('5' | 0b10000000); // ㄼ
+
+                    break;
+                case 't':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('6' | 0b10000000); // ㄽ
+
+                    break;
+                case 'x':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('7' | 0b10000000); // ㄾ
+
+                    break;
+                case 'v':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('8' | 0b10000000); // ㄿ
+
+                    break;
+                case 'g':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('9' | 0b10000000); // ㅀ
+
+                    break;
+                default:
+                    input_buffer.push_back(value);
+
+                    break;
+            }
+
+            break;
+        case 'q':
+            if (ch == 't') {
+                input_buffer.pop_back();
+                input_buffer.push_back('0' | 0b10000000);     // ㅄ
+            } else {
+                input_buffer.push_back(value);
+            }
+
+            break;
+        case 'h':
+            switch (ch) {
+                case 'k':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('{' | 0b10000000); // ㅘ
+
+                    break;
+                case 'o':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('}' | 0b10000000); // ㅙ
+
+                    break;
+                case 'l':
+                    input_buffer.pop_back();
+                    input_buffer.push_back(']' | 0b10000000); // ㅚ
+
+                    break;
+                default:
+                    input_buffer.push_back(value);
+
+                    break;
+            }
+
+            break;
+        case 'n':
+            switch (ch) {
+                case 'j':
+                    input_buffer.pop_back();
+                    input_buffer.push_back(')' | 0b10000000); // ㅝ
+
+                    break;
+                case 'p':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('[' | 0b10000000); // ㅞ
+
+                    break;
+                case 'l':
+                    input_buffer.pop_back();
+                    input_buffer.push_back('(' | 0b10000000); // ㅟ
+
+                    break;
+                default:
+                    input_buffer.push_back(value);
+
+                    break;
+            }
+
+            break;
+        case 'm':
+            if (ch == 'l') {
+                input_buffer.pop_back();
+                input_buffer.push_back('+' | 0b10000000); // ㅢ
+            } else {
+                input_buffer.push_back(value);
+            }
+
+            break;
+        case '`':                            // ㄳ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('r' | 0b10000000);
+                input_buffer.push_back('t' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        case '1':                            // ㄵ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('s' | 0b10000000);
+                input_buffer.push_back('w' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        case '2':                            // ㄶ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('s' | 0b10000000);
+                input_buffer.push_back('g' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        case '3':                            // ㄺ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('f' | 0b10000000);
+                input_buffer.push_back('r' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        case '4':                            // ㄻ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('f' | 0b10000000);
+                input_buffer.push_back('a' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        case '5':                            // ㄼ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('f' | 0b10000000);
+                input_buffer.push_back('q' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        case '6':                            // ㄽ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('f' | 0b10000000);
+                input_buffer.push_back('t' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        case '7':                            // ㄾ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('f' | 0b10000000);
+                input_buffer.push_back('x' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        case '8':                            // ㄿ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('f' | 0b10000000);
+                input_buffer.push_back('v' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        case '9':                            // ㅀ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('f' | 0b10000000);
+                input_buffer.push_back('g' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        case '0':                            // ㅄ
+            if (is_a_vowel) {
+                input_buffer.pop_back();
+                input_buffer.push_back('q' | 0b10000000);
+                input_buffer.push_back('t' | 0b10000000);
+            }
+            input_buffer.push_back(value);
+
+            break;
+        default:
+            input_buffer.push_back(value);
+
+            break;
     }
 }
 
@@ -734,7 +770,7 @@ std::string TextInputHandler::get_text()
     return text;
 }
 
-bool TextInputHandler::draw_medium_plus_textbox(bool is_KR_or_EN, const WordData *data)
+bool TextInputHandler::draw_medium_plus_textbox(const WordData *data)
 {
     ;
 }
