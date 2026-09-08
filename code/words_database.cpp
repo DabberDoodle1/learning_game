@@ -1,6 +1,8 @@
 #include "words_database.hpp"
 #include "gamemode_manager.hpp"
+#include <ctime>
 #include <iostream>
+#include <random>
 #include <utility>
 
 std::vector<WordData>                                     WordDatabase::words;
@@ -341,6 +343,49 @@ void WordDatabase::init()
     modifiers_1.emplace_back(get_word("부유하다"));
     modifiers_1.emplace_back(get_word("운이 좋다"));
     modifiers_1.emplace_back(get_word("운이 나쁘다"));
+
+    // Randomized word group that resets daily
+    std::vector<const WordData*>& random = word_groups.try_emplace("Random").first->second;
+    GamemodeManager::GamemodeSettings::selection[2].emplace_back("Random");
+
+    auto now =  std::time(nullptr);
+    auto lt  = *std::localtime(&now);
+
+    unsigned int rd_seed = 10000 * (lt.tm_year + 1900) + 100 * (lt.tm_mon + 1) + lt.tm_mday;
+
+    std::mt19937                       gen(rd_seed);
+    std::uniform_int_distribution<int> dist(0, words.size() - 1);
+
+    unsigned int rd_items[50];
+
+    for (unsigned int i = 0; i < 50; ++i) {
+        unsigned int n = dist(gen);
+
+        while (true) {
+            bool is_dupe = false;
+
+            for (unsigned int j = 0; j < i; ++j) {
+                if (n == rd_items[j]) {
+                    is_dupe = true;
+                    break;
+                }
+            }
+
+            if (!is_dupe) {
+                break;
+            }
+
+            n = dist(gen);
+        }
+
+        rd_items[i] = n;
+    }
+
+    for (unsigned int i = 0; i < 50; ++i) {
+        const char* key = KR_EN_pairs[rd_items[i]].KR[0].c_str();
+
+        random.emplace_back(get_word(key));
+    }
 }
 
 const WordData* WordDatabase::get_word(const char* word)
