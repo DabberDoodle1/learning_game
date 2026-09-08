@@ -215,6 +215,62 @@ void WordDatabase::init()
         { { "무엇", "뭐" }, { "What"  } },
         { { "어느"       }, { "Which" } },
         { { "어떻게"     }, { "How"   } },
+
+        // Colors
+        { { "빨강" }, { "Red"    } },
+        { { "주황" }, { "Orange" } },
+        { { "노랑" }, { "Yellow" } },
+        { { "초록" }, { "Green"  } },
+        { { "파랑" }, { "Blue"   } },
+        { { "보라" }, { "Purple" } },
+        { { "분홍" }, { "Pink"   } },
+        { { "갈색" }, { "Brown"  } },
+        { { "검정" }, { "Black"  } },
+        { { "하양" }, { "White"  } },
+        { { "회색" }, { "Grey"   } },
+
+        // Numbers
+        { { "하나" }, { "1"  } },
+        { { "둘"   }, { "2"  } },
+        { { "셋"   }, { "3"  } },
+        { { "넷"   }, { "4"  } },
+        { { "다섯" }, { "5"  } },
+        { { "여섯" }, { "6"  } },
+        { { "일곱" }, { "7"  } },
+        { { "여덟" }, { "8"  } },
+        { { "아홉" }, { "9"  } },
+        { { "열"   }, { "10" } },
+
+        // Animals
+        { { "게"     }, { "Dog"      } },
+        { { "고양이" }, { "Cat"      } },
+        { { "새"     }, { "Bird"     } },
+        { { "물고기" }, { "Fish"     } },
+        { { "말"     }, { "Horse"    } },
+        { { "소"     }, { "Cow"      } },
+        { { "돼지"   }, { "Pig"      } },
+        { { "닭"     }, { "Chicken"  } },
+        { { "토끼"   }, { "Rabbit"   } },
+        { { "쥐"     }, { "Mouse"    } },
+        { { "곰"     }, { "Bear"     } },
+        { { "사자"   }, { "Lion"     } },
+        { { "호랑이" }, { "Tiger"    } },
+        { { "원숭이" }, { "Monkey"   } },
+        { { "코끼리" }, { "Elephant" } },
+
+        // Body parts
+        { { "머리"   }, { "Head"    } },
+        { { "얼굴"   }, { "Face"    } },
+        { { "눈"     }, { "Eye"     } },
+        { { "코"     }, { "Nose"    } },
+        { { "입"     }, { "Mouth"   } },
+        { { "귀"     }, { "Ear"     } },
+        { { "손"     }, { "Hand"    } },
+        { { "손가락" }, { "Finger"  } },
+        { { "팔"     }, { "Arm"     } },
+        { { "다리"   }, { "Leg"     } },
+        { { "발"     }, { "Foot"    } },
+        { { "배"     }, { "Stomach" } },
     };
 
     for (const WordData& pair : KR_EN_pairs) {
@@ -343,6 +399,66 @@ void WordDatabase::init()
     modifiers_1.emplace_back(get_word("부유하다"));
     modifiers_1.emplace_back(get_word("운이 좋다"));
     modifiers_1.emplace_back(get_word("운이 나쁘다"));
+
+    std::vector<const WordData*>& colors = word_groups.try_emplace("Colors").first->second;
+    GamemodeManager::GamemodeSettings::selection[2].emplace_back("Colors");
+    colors.emplace_back(get_word("빨강"));
+    colors.emplace_back(get_word("주황"));
+    colors.emplace_back(get_word("노랑"));
+    colors.emplace_back(get_word("초록"));
+    colors.emplace_back(get_word("파랑"));
+    colors.emplace_back(get_word("보라"));
+    colors.emplace_back(get_word("분홍"));
+    colors.emplace_back(get_word("갈색"));
+    colors.emplace_back(get_word("검정"));
+    colors.emplace_back(get_word("하양"));
+    colors.emplace_back(get_word("회색"));
+
+    std::vector<const WordData*>& numbers = word_groups.try_emplace("Numbers").first->second;
+    GamemodeManager::GamemodeSettings::selection[2].emplace_back("Numbers");
+    numbers.emplace_back(get_word("하나"));
+    numbers.emplace_back(get_word("둘"));
+    numbers.emplace_back(get_word("셋"));
+    numbers.emplace_back(get_word("넷"));
+    numbers.emplace_back(get_word("다섯"));
+    numbers.emplace_back(get_word("여섯"));
+    numbers.emplace_back(get_word("일곱"));
+    numbers.emplace_back(get_word("여덟"));
+    numbers.emplace_back(get_word("아홉"));
+    numbers.emplace_back(get_word("열"));
+
+    std::vector<const WordData*>& animals = word_groups.try_emplace("Animals").first->second;
+    GamemodeManager::GamemodeSettings::selection[2].emplace_back("Animals");
+    animals.emplace_back(get_word("게"));
+    animals.emplace_back(get_word("고양이"));
+    animals.emplace_back(get_word("새"));
+    animals.emplace_back(get_word("물고기"));
+    animals.emplace_back(get_word("말"));
+    animals.emplace_back(get_word("소"));
+    animals.emplace_back(get_word("돼지"  ));
+    animals.emplace_back(get_word("닭"));
+    animals.emplace_back(get_word("토끼"  ));
+    animals.emplace_back(get_word("쥐"));
+    animals.emplace_back(get_word("곰"));
+    animals.emplace_back(get_word("사자"));
+    animals.emplace_back(get_word("호랑이"));
+    animals.emplace_back(get_word("원숭이"));
+    animals.emplace_back(get_word("코끼리"));
+
+    std::vector<const WordData*>& body_parts = word_groups.try_emplace("Body Parts").first->second;
+    GamemodeManager::GamemodeSettings::selection[2].emplace_back("Body Parts");
+    body_parts.emplace_back(get_word("머리"));
+    body_parts.emplace_back(get_word("얼굴"));
+    body_parts.emplace_back(get_word("눈"));
+    body_parts.emplace_back(get_word("코"));
+    body_parts.emplace_back(get_word("입"));
+    body_parts.emplace_back(get_word("귀"));
+    body_parts.emplace_back(get_word("손"));
+    body_parts.emplace_back(get_word("손가락"));
+    body_parts.emplace_back(get_word("팔"));
+    body_parts.emplace_back(get_word("다리"));
+    body_parts.emplace_back(get_word("발"));
+    body_parts.emplace_back(get_word("배"));
 
     // Randomized word group that resets daily
     std::vector<const WordData*>& random = word_groups.try_emplace("Random").first->second;
