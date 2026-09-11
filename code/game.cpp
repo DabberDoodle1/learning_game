@@ -1,5 +1,6 @@
 #include "game.hpp"
 #include "gamemode_manager.hpp"
+#include "resource_manager.hpp"
 #include "words_database.hpp"
 #include <GLFW/glfw3.h>
 
@@ -17,6 +18,8 @@ unsigned int Game::m_width;
 unsigned int Game::m_height;
 float        progress = 0.0f;
 bool         is_inbetween_rounds = false;
+
+void draw_bg();
 
 void Game::setup(unsigned int width, unsigned int height, const char* title)
 {
@@ -41,14 +44,24 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 450 core");
-    ImGui::GetIO().IniFilename = nullptr; // Disable Dear ImGui's data saving
+    ImGui::GetIO().IniFilename = nullptr;        // Disable Dear ImGui's data saving
 
     ImGui::GetStyle().DisabledAlpha = 1.0f;
     glViewport(0, 0, m_width, m_height);
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
+    // Fonts
     GamemodeManager::init("res/BebasNeue-Regular.ttf", "res/NotoSansKR-Regular.ttf", m_width * 0.0085f);
+
+    // Words
     WordDatabase::init();
+
+    // Shaders
+    ResourceManager::shaders.try_emplace("bg", "res/shaders/bg_vert.glsl", "res/shaders/bg_frag.glsl");
+
+    // Drawables
+    Drawable::init_VAOs();
+    ResourceManager::drawables.try_emplace("bg");
 }
 
 void Game::run()
@@ -60,16 +73,22 @@ void Game::run()
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        GamemodeManager::draw_gui();
         glClear(GL_COLOR_BUFFER_BIT);
+
+        draw_bg();
+        GamemodeManager::draw_gui();
+
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 #ifdef VIDEO_RECORDING
         encoder.add_frame();
+
 #endif
 
         glfwSwapBuffers(window);
     }
+
+    ResourceManager::clear();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -77,6 +96,17 @@ void Game::run()
 
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void draw_bg()
+{
+    Shader&   bg_shader   = ResourceManager::shaders.at("bg");
+    Drawable& bg_drawable = ResourceManager::drawables.at("bg");
+
+    bg_shader.use();
+    bg_drawable.draw(QUAD);
+
+    glUseProgram(0);
 }
 
 void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)

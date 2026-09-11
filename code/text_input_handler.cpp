@@ -2,7 +2,6 @@
 #include "game.hpp"
 #include "gamemode_manager.hpp"
 #include "imgui.h"
-#include <iostream>
 #include <map>
 
 std::vector<unsigned char> TextInputHandler::input_buffer;

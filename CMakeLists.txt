@@ -93,12 +93,12 @@ set(
     "${CMAKE_SOURCE_DIR}/code/gamemode_manager.cpp"
     "${CMAKE_SOURCE_DIR}/code/words_database.cpp"
     "${CMAKE_SOURCE_DIR}/code/text_input_handler.cpp"
+    "${CMAKE_SOURCE_DIR}/code/resource_manager.cpp"
+    "${CMAKE_SOURCE_DIR}/code/shader.cpp"
+    "${CMAKE_SOURCE_DIR}/code/drawable.cpp"
 )
 
-set(
-    INCLUDE_DIRS
-    "${CMAKE_SOURCE_DIR}/code/"
-)
+set(INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/code/")
 
 set_property(
     TARGET "${CMAKE_PROJECT_NAME}"
