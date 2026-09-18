@@ -64,3 +64,9 @@ void Shader::use() const
 {
     glUseProgram(ID);
 }
+
+void Shader::uniform(const char* name, float value) const
+{
+    use();
+    glUniform1f(glGetUniformLocation(ID, name), value);
+}

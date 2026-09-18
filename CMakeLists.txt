@@ -26,7 +26,14 @@ add_custom_target(
     COMMENT "${BLUE}Resource files have been successfully copied into binary directory"
 )
 
-add_compile_options(-g)
+add_compile_options(
+    -g
+    -Wall
+    -Wextra
+    -Wshadow
+    -Wunused
+    -Wno-sign-compare
+)
 # add_compile_options(-O0)
 
 add_executable("${CMAKE_PROJECT_NAME}")

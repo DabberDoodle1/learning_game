@@ -231,14 +231,13 @@ bool TextInputHandler::draw_medium_textbox(const WordData* correct, float width,
 {
     bool should_shuffle = false;
 
-    static std::string            buffer{};
-    static ImGuiInputTextCallback input_text_cb = [](ImGuiInputTextCallbackData* correct) -> int { return 0; };
-
+    static std::string  buffer{};
     static const ImVec2 size = ImVec2(width, ImGui::GetFrameHeight());
 
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
+
     ImGui::SetCursorPos(pos);
     ImGui::PushID("input_text");
     if (ImGui::Button(buffer.c_str(), size)) {
@@ -662,12 +661,12 @@ std::string TextInputHandler::get_text()
 
             bool is_consonant;
             bool is_batchim;
-            for (unsigned int i = 0; i < size; ++i) {
-                if (ch == keys[i]) {
-                    if (i < 19) {
+            for (unsigned int j = 0; j < size; ++j) {
+                if (ch == keys[j]) {
+                    if (j < 19) {
                         is_consonant = true;
                         is_batchim   = false;
-                    } else if (i >= 19 && i <= 29) {
+                    } else if (j >= 19 && j <= 29) {
                         is_consonant = true;
                         is_batchim   = true;
                     } else {
@@ -708,7 +707,7 @@ std::string TextInputHandler::get_text()
                         text += get_sb(curr_sb_buffer);
                     }
 
-                    if (ch == 'Q' | ch == 'W' || ch == 'E') {
+                    if (ch == 'Q' || ch == 'W' || ch == 'E') {
                         text += get_sb(curr_sb_buffer);
                         curr_sb_buffer.push_back(ch);
                         curr_sb_count = 1;
@@ -725,9 +724,9 @@ std::string TextInputHandler::get_text()
 
                         if (next_is_KR) {
                             bool is_next_a_vowel = false;
-                            for (unsigned int i = 0; i < size; ++i) {
-                                if (next_ch == keys[i]) {
-                                    if (i > 29) {
+                            for (unsigned int j = 0; j < size; ++j) {
+                                if (next_ch == keys[j]) {
+                                    if (j > 29) {
                                         is_next_a_vowel = true;
                                     }
                                 }
@@ -769,7 +768,7 @@ std::string TextInputHandler::get_text()
     return text;
 }
 
-bool TextInputHandler::draw_medium_plus_textbox(const WordData *data)
-{
-    ;
-}
+// bool TextInputHandler::draw_medium_plus_textbox(const WordData* data)
+// {
+//     return false; // Not yet added
+// }

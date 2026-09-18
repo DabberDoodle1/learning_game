@@ -4,9 +4,15 @@ enum DrawableShapes {
     QUAD = 0
 };
 
-struct Drawable {
+class Drawable {
+public:
     static void init_VAOs();
     static void delete_VAOs();
 
-    void draw(DrawableShapes shape) const;
+    Drawable(DrawableShapes shape): m_shape(shape) {}
+
+    void draw() const;
+
+private:
+    DrawableShapes m_shape;
 };

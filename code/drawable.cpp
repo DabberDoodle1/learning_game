@@ -3,15 +3,15 @@
 #include <glad/glad.h>
 #include <vector>
 
-unsigned int quad_VAO;
+#define VAO_COUNT 1
+
+// index -> shape
+// 0 - Quad
+unsigned int VAOs[VAO_COUNT];
 
 void Drawable::init_VAOs()
 {
-    unsigned int* VAOs[] = {
-        &quad_VAO
-    };
-
-    std::vector<float> vertices[] = {
+    std::vector<float> vertices[VAO_COUNT] = {
         {
             -1.0f,  1.0f,
              1.0f,  1.0f,
@@ -20,20 +20,22 @@ void Drawable::init_VAOs()
         }
     };
 
-    std::vector<unsigned int> indices[] = {
+    std::vector<unsigned int> indices[VAO_COUNT] = {
         {
             0, 1, 2,
             0, 2, 3
         }
     };
 
-    for (unsigned int i = 0; i < sizeof(VAOs) / sizeof(VAOs[0]); ++i) {
-        unsigned int buffers[2];
+    // Generate all VAOs
+    glGenVertexArrays(VAO_COUNT, VAOs);
 
-        glGenVertexArrays(1, VAOs[i]);
+    // Add render data to each VAO
+    for (unsigned int i = 0; i < VAO_COUNT; ++i) {
+        unsigned int buffers[2];
         glGenBuffers(2, buffers);
 
-        glBindVertexArray(*VAOs[i]);
+        glBindVertexArray(VAOs[i]);
         glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
 
@@ -52,27 +54,15 @@ void Drawable::init_VAOs()
 
 void Drawable::delete_VAOs()
 {
-    unsigned int* VAOs[] = {
-        &quad_VAO
-    };
-
-    for (unsigned int* VAO : VAOs) {
-        if (*VAO) {
-            glDeleteVertexArrays(1, VAO);
-        }
-    }
+    glDeleteVertexArrays(VAO_COUNT, VAOs);
 }
 
-void Drawable::draw(DrawableShapes shape) const
+void Drawable::draw() const
 {
-    unsigned int VAOs[] = {
-        quad_VAO
-    };
-
-    unsigned int index_counts[] = {
+    static const unsigned int index_counts[VAO_COUNT] = {
         6
     };
 
-    glBindVertexArray(VAOs[shape]);
-    glDrawElements(GL_TRIANGLES, index_counts[shape], GL_UNSIGNED_INT, 0);
+    glBindVertexArray(VAOs[m_shape]);
+    glDrawElements(GL_TRIANGLES, index_counts[m_shape], GL_UNSIGNED_INT, 0);
 }

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "imgui.h"
 #include "word_data.hpp"
 #include <string>
@@ -9,7 +10,7 @@ public:
     TextInputHandler() = delete;
 
     static bool         draw_medium_textbox(const WordData* correct, float width, ImVec2 pos);
-    static bool         draw_medium_plus_textbox(const WordData* correct);
+    // static bool         draw_medium_plus_textbox(const WordData* correct);
 
     static unsigned int cursor_pos;
 

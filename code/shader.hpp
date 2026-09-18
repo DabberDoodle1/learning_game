@@ -11,6 +11,7 @@ public:
     Shader& operator=(Shader&& other)      = delete;
 
     void use() const;
+    void uniform(const char* name, float value) const;
 
 private:
     unsigned int ID;
