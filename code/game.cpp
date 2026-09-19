@@ -12,9 +12,6 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-// Constants
-#define SQUARES_PER_WIDTH 32.0f // How many squares to draw across background width
-
 void draw_bg()
 {
     Shader&   bg_shad = ResourceManager::shaders.at("bg");
@@ -41,30 +38,46 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
 
     glfwMakeContextCurrent(ResourceManager::game_window);
     glfwSwapInterval(1);
-    glfwSetKeyCallback(ResourceManager::game_window, key_callback);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+
+    glfwSetKeyCallback(ResourceManager::game_window, key_callback);
+    glViewport(0, 0, ResourceManager::game_width, ResourceManager::game_height);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(ResourceManager::game_window, true);
-    ImGui_ImplOpenGL3_Init("#version 450 core");
-
     ImGui::GetIO().IniFilename      = nullptr; // Disable Dear ImGui's data saving
     ImGui::GetStyle().DisabledAlpha = 1.0f;
 
-    glViewport(0, 0, ResourceManager::game_width, ResourceManager::game_height);
+    ImGui_ImplGlfw_InitForOpenGL(ResourceManager::game_window, true);
+    ImGui_ImplOpenGL3_Init("#version 450 core");
+
+    // Loading resources
+    const float       SQUARES_PER_WIDTH = 32.0f;           // How many squares to draw across background width
+    const std::string FONT_DIR_PATH     = "res/fonts/";    // Font files location
+    const std::string SHADER_DIR_PATH   = "res/shaders/";  // Shader files location
+    const std::string SPRITE_DIR_PATH   = "res/sprites/";  // Sprite files location
 
     // Words
     WordDatabase::init();
 
     // Fonts
-    GamemodeManager::init("res/BebasNeue-Regular.ttf", "res/NotoSansKR-Regular.ttf");
+    GamemodeManager::init(
+        (FONT_DIR_PATH + "BebasNeue-Regular.ttf").c_str(),
+        (FONT_DIR_PATH + "NotoSansKR-Regular.ttf").c_str()
+    );
 
     // Shaders
-    Shader& bg_shad = ResourceManager::shaders.try_emplace("bg", "res/shaders/bg_vert.glsl", "res/shaders/bg_frag.glsl").first->second;
+    Shader& bg_shad = ResourceManager::shaders.try_emplace(
+        "bg",
+        (SHADER_DIR_PATH + "bg_vert.glsl").c_str(),
+        (SHADER_DIR_PATH + "bg_frag.glsl").c_str()
+    ).first->second;
 
-    bg_shad.uniform("pattern_size", ResourceManager::game_width / SQUARES_PER_WIDTH);
+    bg_shad.uniform(
+        "pattern_size",
+        ResourceManager::game_width / SQUARES_PER_WIDTH
+    );
 
     // Drawables
     Drawable::init_VAOs();
