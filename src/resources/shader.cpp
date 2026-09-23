@@ -1,7 +1,8 @@
 #include "resources/shader.hpp"
 
-#include <fstream>
 #include <glad/glad.h>
+
+#include <fstream>
 #include <iostream>
 #include <sstream>
 
@@ -103,4 +104,9 @@ void Shader::uniform(const char* name, int value) const
 void Shader::uniform(const char* name, const glm::mat4& value) const
 {
     glUniformMatrix4fv(glGetUniformLocation(ID, name), 1, false, &value[0][0]);
+}
+
+void Shader::uniform(const char* name, const glm::vec4& value) const
+{
+    glUniform4fv(glGetUniformLocation(ID, name), 1, &value[0]);
 }

@@ -1,10 +1,9 @@
-#include "resources/drawable.hpp"
-#include "handlers/resource_manager.hpp"
+#include "handlers/draw_handler.hpp"
 
 #include <glad/glad.h>
 #include <glm/ext/matrix_transform.hpp>
-
 #include <glm/ext/vector_float3.hpp>
+
 #include <vector>
 
 // index -> shape
@@ -15,7 +14,7 @@
 unsigned int VAOs[VAO_COUNT];
 
 // Static methods
-void Drawable::init_VAOs()
+void DrawHandler::init_VAOs()
 {
     std::vector<float> vertices[VAO_COUNT] = {
         {
@@ -58,20 +57,12 @@ void Drawable::init_VAOs()
     }
 }
 
-void Drawable::delete_VAOs()
+void DrawHandler::delete_VAOs()
 {
     glDeleteVertexArrays(VAO_COUNT, VAOs);
 }
 
-// Non-static methods
-Drawable::Drawable(DrawableShape shape, float pos_x, float pos_y, float width, float height): m_shape(shape), m_model(1.0f)
-{
-    // Calculate m_model matrix from position and dimensions
-    m_model = glm::translate(m_model, glm::vec3(pos_x, pos_y, 0.0f));
-    m_model = glm::scale(m_model, glm::vec3(width, height, 1.0f));
-}
-
-void Drawable::draw() const
+void DrawHandler::draw(DrawableShape m_shape)
 {
     static const unsigned int index_counts[VAO_COUNT] = {
         6

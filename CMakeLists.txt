@@ -99,6 +99,7 @@ set(
 
     "${CMAKE_SOURCE_DIR}/src/game.cpp"
 
+    "${CMAKE_SOURCE_DIR}/src/handlers/draw_handler.cpp"
     "${CMAKE_SOURCE_DIR}/src/handlers/gamemode_manager.cpp"
     "${CMAKE_SOURCE_DIR}/src/handlers/resource_manager.cpp"
     "${CMAKE_SOURCE_DIR}/src/handlers/text_input_handler.cpp"

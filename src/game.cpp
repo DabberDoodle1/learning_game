@@ -1,5 +1,5 @@
 #include "game.hpp"
-#include "resources/drawable.hpp"
+#include "handlers/draw_handler.hpp"
 #include "handlers/gamemode_manager.hpp"
 #include "handlers/resource_manager.hpp"
 #include "handlers/words_database.hpp"
@@ -15,11 +15,10 @@
 
 void draw_bg()
 {
-    static Shader&   bg_shader   = ResourceManager::shaders.at("bg");
-    static Drawable& bg_drawable = ResourceManager::drawables.at("bg");
+    static Shader& bg_shader = ResourceManager::shaders.at("bg");
 
     bg_shader.use();
-    bg_drawable.draw();
+    DrawHandler::draw(QUAD);
 }
 
 void Game::setup(unsigned int width, unsigned int height, const char* title)
@@ -59,7 +58,14 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     const std::string SHADER_DIR_PATH   = "res/shaders/";  // Shader files location
     const std::string TEXTURE_DIR_PATH  = "res/textures/";  // Sprite files location
 
-    ResourceManager::projection = glm::ortho(0.0f, static_cast<float>(ResourceManager::game_width), static_cast<float>(ResourceManager::game_height), 0.0f, -1.0f, 1.0f);
+    ResourceManager::projection = glm::ortho(
+        0.0f,
+        static_cast<float>(ResourceManager::game_width),
+        static_cast<float>(ResourceManager::game_height),
+        0.0f,
+        -1.0f,
+        1.0f
+    );
 
     // Words
     WordDatabase::init();
@@ -71,7 +77,7 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     );
 
     // Shaders
-    Shader& bg_shader     = ResourceManager::shaders.try_emplace(
+    Shader& bg_shader = ResourceManager::shaders.try_emplace(
         "bg",
         (SHADER_DIR_PATH + "bg_vert.glsl").c_str(),
         (SHADER_DIR_PATH + "bg_frag.glsl").c_str()
@@ -81,6 +87,11 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
         (SHADER_DIR_PATH + "sprite_vert.glsl").c_str(),
         (SHADER_DIR_PATH + "sprite_frag.glsl").c_str()
     ).first->second;
+    Shader& mono_color_shader = ResourceManager::shaders.try_emplace(
+        "mono_color",
+        (SHADER_DIR_PATH + "mono_color_vert.glsl").c_str(),
+        (SHADER_DIR_PATH + "mono_color_frag.glsl").c_str()
+    ).first->second;
 
     bg_shader.use();
     bg_shader.uniform("pattern_size", ResourceManager::game_width / SQUARES_PER_WIDTH);
@@ -89,21 +100,19 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     sprite_shader.uniform("texture_unit", 0);
     sprite_shader.uniform("projection", ResourceManager::projection);
 
+    mono_color_shader.use();
+    mono_color_shader.uniform("projection", ResourceManager::projection);
+
     // Textures
     // Only using texture unit 0 as far as progress has gone
     glActiveTexture(GL_TEXTURE0);
-    ResourceManager::textures.try_emplace("settings", (TEXTURE_DIR_PATH + "Settings.png").c_str());
+    ResourceManager::textures.try_emplace("settings", (TEXTURE_DIR_PATH + "Settings1.png").c_str());
     ResourceManager::textures.try_emplace("border",   (TEXTURE_DIR_PATH + "Border.png").c_str());
 
     // Drawables
-    Drawable::init_VAOs();
+    DrawHandler::init_VAOs();
     ResourceManager::drawables.try_emplace(
-        "bg", QUAD,
-        0.0f, 0.0f,
-        ResourceManager::game_width, ResourceManager::game_height
-    );
-    ResourceManager::drawables.try_emplace(
-        "settings", QUAD,
+        "settings",
         ResourceManager::game_width * 31.0f / 32.0f, ResourceManager::game_width / 32.0f,
         ResourceManager::game_width / 32.0f,         ResourceManager::game_width / 32.0f
     );
@@ -140,6 +149,11 @@ void Game::finish()
     glfwDestroyWindow(ResourceManager::game_window);
     glfwTerminate();
 }
+
+// Compiler thing because I'll seldom find myself using scancode therefore will always be
+// getting compiler warnings about unused parameters here so I'm disabling that for this
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -239,3 +253,5 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
         }
     }
 }
+
+#pragma GCC diagnostic pop

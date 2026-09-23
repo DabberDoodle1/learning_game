@@ -1,4 +1,5 @@
 #include "handlers/gamemode_manager.hpp"
+#include "handlers/draw_handler.hpp"
 #include "handlers/resource_manager.hpp"
 #include "handlers/text_input_handler.hpp"
 #include "handlers/words_database.hpp"
@@ -6,9 +7,11 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <glm/ext/matrix_transform.hpp>
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <random>
 
 #define SCALING_FACTOR_FIX   ResourceManager::game_width * 0.0085f / 10.88f
@@ -143,33 +146,55 @@ void GamemodeManager::draw_settings()
     */
 
     // Draw settings menu page slider button thing
+    static const Shader&   sprite_shader     = ResourceManager::shaders.at("sprite");
+    static const Shader&   mono_color_shader = ResourceManager::shaders.at("mono_color");
+    static const Texture&  settings_texture  = ResourceManager::textures.at("settings");
+    static const Texture&  settings_border   = ResourceManager::textures.at("border");
+    static const Drawable& settings          = ResourceManager::drawables.at("settings");
+
     static const ImVec2 button_size(
-        ResourceManager::game_width / 32.0f,
-        ResourceManager::game_width / 32.0f
+        settings.w,
+        settings.h
     );
     static const ImVec2 button_pos(
-        button_size.x * 0.5f,
-        button_size.x * 0.5f
+        settings.x - settings.w * 0.5f,
+        settings.y - settings.h * 0.5f
     );
+    static const ImVec2 border_size(
+        settings.w * 18.0f / 16.0f,
+        settings.h * 18.0f / 16.0f
+    );
+    static const glm::mat4 border_model(
+        glm::scale(
+            glm::translate(
+                glm::mat4(1.0f),
+                glm::vec3(settings.x, settings.y, 0.0f)
+            ),
+            glm::vec3(border_size.x, border_size.y, 1.0f)
+        )
+    );
+
+    // Draw settings button background
+    mono_color_shader.use();
+    mono_color_shader.uniform("model", settings.get_model());
+    mono_color_shader.uniform("color", glm::vec4(0.686f, 0.51f, 0.392f, 1.0f));
+    DrawHandler::draw(QUAD);
+
+    // Draw settings icon on top
+    sprite_shader.use();
+    sprite_shader.uniform("model", settings.get_model());
+    settings_texture.bind();
+    DrawHandler::draw(QUAD);
+
+    // Draw button border on top using same pos since quad VAO pivot is centered 
+    sprite_shader.uniform("model", border_model);
+    settings_border.bind();
+    DrawHandler::draw(QUAD);
 
     ImGui::SetCursorPos(button_pos);
     if (ImGui::InvisibleButton("##Settings", button_size)) {
-        ;
+        std::cout << "Button pressed.\n";
     }
-
-    static const Shader&   sprite_shader    = ResourceManager::shaders.at("sprite");
-    static const Texture&  settings_texture = ResourceManager::textures.at("settings");
-    static const Texture&  settings_border  = ResourceManager::textures.at("border");
-    static const Drawable& settings         = ResourceManager::drawables.at("settings");
-
-    sprite_shader.use();
-    sprite_shader.uniform("model", settings.get_model());
-
-    settings_texture.bind();
-    settings.draw();
-
-    settings_border.bind();
-    
 }
 
 void GamemodeManager::draw_mtw_mode(const char* group_name)

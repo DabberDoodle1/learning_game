@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/ext/matrix_float4x4.hpp>
+#include <glm/ext/vector_float4.hpp>
 
 class Shader {
 public:
@@ -11,6 +12,7 @@ public:
     void uniform(const char* name, const float value) const;
     void uniform(const char* name, const int value) const;
     void uniform(const char* name, const glm::mat4& value) const;
+    void uniform(const char* name, const glm::vec4& value) const;
 
 private:
     unsigned int ID;

@@ -2,8 +2,10 @@
 
 out vec4 frag_color;
 
-// uniform float pattern_size;
-const float ps = 1280.0f / 32.0f;
+uniform float pattern_size;
+
+const vec4 dark_color  = vec4(0.2f, 0.2f, 0.2f, 1.0f);
+const vec4 light_color = vec4(0.3f, 0.3f, 0.3f, 1.0f);
 
 void square_pattern();
 
@@ -14,11 +16,11 @@ void main()
 
 void square_pattern()
 {
-    bool is_dark = (mod(gl_FragCoord.x, 2 * ps) > ps) ^^ (mod(gl_FragCoord.y, 2 * ps) > ps);
+    bool is_dark = (mod(gl_FragCoord.x, 2 * pattern_size) > pattern_size) ^^ (mod(gl_FragCoord.y, 2 * pattern_size) > pattern_size);
 
     if (is_dark) {
-        frag_color = vec4(0.2f, 0.2f, 0.2f, 1.0f);
+        frag_color = dark_color;
     } else {
-        frag_color = vec4(0.3f, 0.3f, 0.3f, 1.0f);
+        frag_color = light_color;
     }
 }
