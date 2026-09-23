@@ -1,5 +1,6 @@
-#include "words_database.hpp"
-#include "gamemode_manager.hpp"
+#include "handlers/words_database.hpp"
+#include "handlers/gamemode_manager.hpp"
+
 #include <ctime>
 #include <iostream>
 #include <random>

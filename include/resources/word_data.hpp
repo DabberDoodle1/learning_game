@@ -5,6 +5,7 @@
 
 struct WordData {
     WordData(const std::vector<std::string>& _KR, const std::vector<std::string>& _EN): KR(_KR), EN(_EN) {}
-    std::vector<std::string> KR;
-    std::vector<std::string> EN;
+
+    const std::vector<std::string> KR;
+    const std::vector<std::string> EN;
 };

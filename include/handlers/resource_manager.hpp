@@ -1,8 +1,10 @@
 #pragma once
 
-#include "drawable.hpp"
+#include "resources/drawable.hpp"
+#include "resources/shader.hpp"
+#include "resources/texture.hpp"
+
 #include "imgui.h"
-#include "shader.hpp"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -17,7 +19,9 @@ struct ResourceManager {
 
     static void clear();
 
+    // OpenGL resources
     static std::map<std::string, Shader>   shaders;
+    static std::map<std::string, Texture>  textures;
     static std::map<std::string, Drawable> drawables;
 
     // Fonts
@@ -25,9 +29,10 @@ struct ResourceManager {
     static ImFont*      font_KR;
     static float        font_sizes[10];
 
-    static glm::mat4    view;
+    // Orthographic matrix for proper positioning and sizing
     static glm::mat4    projection;
 
+    // Window data
     static GLFWwindow*  game_window;
     static unsigned int game_width;
     static unsigned int game_height;

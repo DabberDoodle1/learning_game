@@ -1,6 +1,7 @@
 #pragma once
 
-#include "word_data.hpp"
+#include "resources/word_data.hpp"
+
 #include <map>
 #include <vector>
 

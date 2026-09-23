@@ -1,7 +1,8 @@
-#include "text_input_handler.hpp"
-#include "game.hpp"
-#include "gamemode_manager.hpp"
+#include "handlers/text_input_handler.hpp"
+#include "handlers/gamemode_manager.hpp"
+
 #include "imgui.h"
+
 #include <map>
 
 std::vector<unsigned char> TextInputHandler::input_buffer;

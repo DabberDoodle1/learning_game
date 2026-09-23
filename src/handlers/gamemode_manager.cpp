@@ -1,15 +1,14 @@
-#include "gamemode_manager.hpp"
-#include "imgui.h"
-#include "resource_manager.hpp"
-#include "text_input_handler.hpp"
-#include "words_database.hpp"
+#include "handlers/gamemode_manager.hpp"
+#include "handlers/resource_manager.hpp"
+#include "handlers/text_input_handler.hpp"
+#include "handlers/words_database.hpp"
 
+#include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
 #include <algorithm>
 #include <cstring>
-#include <iostream>
 #include <random>
 
 #define SCALING_FACTOR_FIX   ResourceManager::game_width * 0.0085f / 10.88f
@@ -72,11 +71,11 @@ void GamemodeManager::draw_gui()
     }
 
     // Settings
-    const char* selected_word_group = draw_settings();
+    draw_settings();
 
     switch (gamemode) {
         case MATCH_THE_WORD:
-            draw_mtw_mode(selected_word_group);
+            draw_mtw_mode(GamemodeSettings::selection[2][GamemodeSettings::sel_ind[2]]);
             break;
         case ARRANGE_THE_SENTENCE:
             // draw_ats_mode(selected_word_group);
@@ -89,7 +88,7 @@ void GamemodeManager::draw_gui()
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-const char* GamemodeManager::draw_settings()
+void GamemodeManager::draw_settings()
 {
     /*
     // Alias
@@ -101,8 +100,8 @@ const char* GamemodeManager::draw_settings()
         "Word group"
     };
 
-    const char*  category_label      = categories[settings::cur_cat]; 
-    const ImVec2 display_size        = ImGui::CalcTextSize(settings::selection[settings::cur_cat][settings::sel_ind[settings::cur_cat]]);
+    const char*  category_label = categories[settings::cur_cat]; 
+    const ImVec2 display_size   = ImGui::CalcTextSize(settings::selection[settings::cur_cat][settings::sel_ind[settings::cur_cat]]);
 
     ImGui::SetCursorPos(ImVec2(20.0f, 40.0f));
     ImGui::PushFont(
@@ -155,19 +154,22 @@ const char* GamemodeManager::draw_settings()
 
     ImGui::SetCursorPos(button_pos);
     if (ImGui::InvisibleButton("##Settings", button_size)) {
-        std::cout << "Pressed\n";
+        ;
     }
 
-    ImGui::GetWindowDrawList()->AddQuadFilled(
-        ImVec2(button_pos.x, button_pos.y),
-        ImVec2(button_pos.x + button_size.x, button_pos.y                ),
-        ImVec2(button_pos.x + button_size.x, button_pos.y + button_size.y),
-        ImVec2(button_pos.x                , button_pos.y + button_size.y),
-        IM_COL32(0, 255, 255, 255)
-    );
+    static const Shader&   sprite_shader    = ResourceManager::shaders.at("sprite");
+    static const Texture&  settings_texture = ResourceManager::textures.at("settings");
+    static const Texture&  settings_border  = ResourceManager::textures.at("border");
+    static const Drawable& settings         = ResourceManager::drawables.at("settings");
 
-    // Return selected word group
-    return GamemodeSettings::selection[2][GamemodeSettings::sel_ind[2]];
+    sprite_shader.use();
+    sprite_shader.uniform("model", settings.get_model());
+
+    settings_texture.bind();
+    settings.draw();
+
+    settings_border.bind();
+    
 }
 
 void GamemodeManager::draw_mtw_mode(const char* group_name)

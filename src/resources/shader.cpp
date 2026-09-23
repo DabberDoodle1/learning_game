@@ -1,4 +1,4 @@
-#include "shader.hpp"
+#include "resources/shader.hpp"
 
 #include <fstream>
 #include <glad/glad.h>
@@ -46,10 +46,31 @@ Shader::Shader(const char* vert_path, const char* frag_path)
     glCompileShader(vert_shader);
     glCompileShader(frag_shader);
 
+    int  success_status;
+    char log_buffer[512]{};
+
+    glGetShaderiv(vert_shader, GL_COMPILE_STATUS, &success_status);
+    if (!success_status) {
+        glGetShaderInfoLog(GL_VERTEX_SHADER, 512, NULL, log_buffer);
+        std::cerr << "Vertex shader error: " << log_buffer << std::endl;
+    }
+
+    glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success_status);
+    if (!success_status) {
+        glGetShaderInfoLog(GL_FRAGMENT_SHADER, 512, NULL, log_buffer);
+        std::cerr << "Fragment shader error: " << log_buffer << std::endl;
+    }
+
     ID = glCreateProgram();
     glAttachShader(ID, vert_shader);
     glAttachShader(ID, frag_shader);
     glLinkProgram(ID);
+
+    glGetProgramiv(ID, GL_LINK_STATUS, &success_status);
+    if (!success_status) {
+        glGetProgramInfoLog(ID, 512, NULL, log_buffer);
+        std::cerr << "Shader program error: " << log_buffer << std::endl;
+    }
 
     glDeleteShader(vert_shader);
     glDeleteShader(frag_shader);
@@ -57,6 +78,10 @@ Shader::Shader(const char* vert_path, const char* frag_path)
 
 Shader::~Shader()
 {
+    if (ID == 0) {
+        return;
+    }
+
     glDeleteProgram(ID);
 }
 
@@ -67,6 +92,15 @@ void Shader::use() const
 
 void Shader::uniform(const char* name, float value) const
 {
-    use();
     glUniform1f(glGetUniformLocation(ID, name), value);
+}
+
+void Shader::uniform(const char* name, int value) const
+{
+    glUniform1i(glGetUniformLocation(ID, name), value);
+}
+
+void Shader::uniform(const char* name, const glm::mat4& value) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(ID, name), 1, false, &value[0][0]);
 }

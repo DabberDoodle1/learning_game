@@ -1,6 +1,7 @@
 #pragma once
 
-#include "word_data.hpp"
+#include "resources/word_data.hpp"
+
 #include <vector>
 
 enum GamemodeType {
@@ -38,8 +39,8 @@ public:
     };
 
 private:
-    static const char* draw_settings();
-    static void        draw_mtw_mode(const char* group_name);
+    static void draw_settings();
+    static void draw_mtw_mode(const char* group_name);
     // static void        draw_ats_mode(const char* group_name);
 
     struct MTW {

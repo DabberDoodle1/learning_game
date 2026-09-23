@@ -1,9 +1,11 @@
 #pragma once
 
-#include "imgui.h"
-#include "word_data.hpp"
+#include "resources/word_data.hpp"
+
 #include <string>
 #include <vector>
+
+#include "imgui.h"
 
 class TextInputHandler {
 public:

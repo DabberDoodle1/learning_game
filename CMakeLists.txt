@@ -86,7 +86,7 @@ if (RECORDING_MODE)
     find_path(SWSCALE_INCLUDE_DIR libswscale/swscale.h REQUIRED)
     find_library(SWSCALE_LIBRARY swscale REQUIRED)
 
-    set(EXTRA_SOURCES "${CMAKE_SOURCE_DIR}/code/special/video_encoder.cpp")
+    set(EXTRA_SOURCES "${CMAKE_SOURCE_DIR}/src/special/video_encoder.cpp")
     set(EXTRA_LIBRARIES ${AVFORMAT_LIBRARY} ${AVCODEC_LIBRARY} ${AVUTIL_LIBRARY} ${SWSCALE_LIBRARY})
     set(EXTRA_INCLUDE_DIRS ${AVFORMAT_INCLUDE_DIR} ${AVCODEC_INCLUDE_DIR} ${AVUTIL_INCLUDE_DIR} ${SWSCALE_INCLUDE_DIR})
 
@@ -95,17 +95,23 @@ endif()
 
 set(
     SOURCES
-    "${CMAKE_SOURCE_DIR}/code/main.cpp"
-    "${CMAKE_SOURCE_DIR}/code/game.cpp"
-    "${CMAKE_SOURCE_DIR}/code/gamemode_manager.cpp"
-    "${CMAKE_SOURCE_DIR}/code/words_database.cpp"
-    "${CMAKE_SOURCE_DIR}/code/text_input_handler.cpp"
-    "${CMAKE_SOURCE_DIR}/code/resource_manager.cpp"
-    "${CMAKE_SOURCE_DIR}/code/shader.cpp"
-    "${CMAKE_SOURCE_DIR}/code/drawable.cpp"
+    "${CMAKE_SOURCE_DIR}/src/main.cpp"
+
+    "${CMAKE_SOURCE_DIR}/src/game.cpp"
+
+    "${CMAKE_SOURCE_DIR}/src/handlers/gamemode_manager.cpp"
+    "${CMAKE_SOURCE_DIR}/src/handlers/resource_manager.cpp"
+    "${CMAKE_SOURCE_DIR}/src/handlers/text_input_handler.cpp"
+    "${CMAKE_SOURCE_DIR}/src/handlers/words_database.cpp"
+
+    "${CMAKE_SOURCE_DIR}/src/resources/drawable.cpp"
+    "${CMAKE_SOURCE_DIR}/src/resources/shader.cpp"
+    "${CMAKE_SOURCE_DIR}/src/resources/texture.cpp"
+
+    "${CMAKE_SOURCE_DIR}/src/stb_image.c"
 )
 
-set(INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/code/")
+set(INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include/")
 
 set_property(
     TARGET "${CMAKE_PROJECT_NAME}"

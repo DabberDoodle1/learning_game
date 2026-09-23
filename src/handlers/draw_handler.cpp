@@ -1,22 +1,28 @@
-#include "drawable.hpp"
+#include "resources/drawable.hpp"
+#include "handlers/resource_manager.hpp"
 
 #include <glad/glad.h>
-#include <vector>
+#include <glm/ext/matrix_transform.hpp>
 
-#define VAO_COUNT 1
+#include <glm/ext/vector_float3.hpp>
+#include <vector>
 
 // index -> shape
 // 0 - Quad
+
+#define VAO_COUNT 1
+
 unsigned int VAOs[VAO_COUNT];
 
+// Static methods
 void Drawable::init_VAOs()
 {
     std::vector<float> vertices[VAO_COUNT] = {
         {
-            -1.0f,  1.0f,
-             1.0f,  1.0f,
-             1.0f, -1.0f,
-            -1.0f, -1.0f
+            -0.5f,  0.5f,
+             0.5f,  0.5f,
+             0.5f, -0.5f,
+            -0.5f, -0.5f
         }
     };
 
@@ -55,6 +61,14 @@ void Drawable::init_VAOs()
 void Drawable::delete_VAOs()
 {
     glDeleteVertexArrays(VAO_COUNT, VAOs);
+}
+
+// Non-static methods
+Drawable::Drawable(DrawableShape shape, float pos_x, float pos_y, float width, float height): m_shape(shape), m_model(1.0f)
+{
+    // Calculate m_model matrix from position and dimensions
+    m_model = glm::translate(m_model, glm::vec3(pos_x, pos_y, 0.0f));
+    m_model = glm::scale(m_model, glm::vec3(width, height, 1.0f));
 }
 
 void Drawable::draw() const
