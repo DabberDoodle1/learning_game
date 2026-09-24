@@ -93,59 +93,8 @@ void GamemodeManager::draw_gui()
 
 void GamemodeManager::draw_settings()
 {
-    /*
-    // Alias
-    using settings = GamemodeSettings;
-
-    const char* categories[]   = {
-        "Source and target",
-        "Difficulty level",
-        "Word group"
-    };
-
-    const char*  category_label = categories[settings::cur_cat]; 
-    const ImVec2 display_size   = ImGui::CalcTextSize(settings::selection[settings::cur_cat][settings::sel_ind[settings::cur_cat]]);
-
-    ImGui::SetCursorPos(ImVec2(20.0f, 40.0f));
-    ImGui::PushFont(
-        ResourceManager::font_EN,
-        ResourceManager::font_sizes[2]
-    );
-
-    ImGui::letter_spacing = 1.0f;
-    ImGui::Text(category_label);
-    ImGui::letter_spacing = 0.0f;
-
-    static const ImVec2 lss = ImGui::CalcTextSize("A"); // Left  select size
-    static const ImVec2 rss = ImGui::CalcTextSize("D"); // Right select size
-
-    // Draw A and D buttons (disabled)
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.5f, 0.5f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.5f, 0.5f, 1.0f));
-
-    ImGui::BeginDisabled();
-    ImGui::SetCursorPos(ImVec2(20.0f, 20.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2((20.0f - lss.x) * 0.5f, (20.0f - lss.y) * 0.5f));
-    ImGui::Button("A##toggle", ImVec2(20.0f, 20.0f));
-    ImGui::PopStyleVar();
-
-    ImGui::SetCursorPos(ImVec2(165.0f, 20.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2((20.0f - rss.x) * 0.5f, (20.0f - rss.y) * 0.5f));
-    ImGui::Button("D##toggle", ImVec2(20.0f, 20.0f));
-    ImGui::PopStyleVar();
-    ImGui::EndDisabled();
-
-    // Draw the main display of current category and selected category value
-    ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(40.0f, 20.0f), ImVec2(165.0f, 40.0f), IM_COL32(102, 102, 102, 255));
-    ImGui::SetCursorPos(ImVec2(45.0f, 30.0f - display_size.y * 0.5f));
-    ImGui::Text(settings::selection[settings::cur_cat][settings::sel_ind[settings::cur_cat]]);
-
-    ImGui::PopFont();
-    ImGui::PopStyleColor(3);
-    */
-
-    // Draw settings menu page slider button thing
+    // Draw settings button
+    // Cache important constants and references to avoid overhead of fetching and calculating them every call
     static const Shader&   sprite_shader     = ResourceManager::shaders.at("sprite");
     static const Shader&   mono_color_shader = ResourceManager::shaders.at("mono_color");
     static const Texture&  settings_texture  = ResourceManager::textures.at("settings");
@@ -173,27 +122,49 @@ void GamemodeManager::draw_settings()
             glm::vec3(border_size.x, border_size.y, 1.0f)
         )
     );
+    static bool is_active  = false;
+    static bool is_hovered = false;
 
-    // Draw settings button background
-    mono_color_shader.use();
-    mono_color_shader.uniform("model", settings.get_model());
-    mono_color_shader.uniform("color", glm::vec4(0.686f, 0.51f, 0.392f, 1.0f));
-    DrawHandler::draw(QUAD);
+    // Draw the visual button
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    // Draw settings icon on top
-    sprite_shader.use();
-    sprite_shader.uniform("model", settings.get_model());
-    settings_texture.bind();
-    DrawHandler::draw(QUAD);
+    // Adding the draw calls to Dear ImGui's window draw list so it renders as if it's part of it
+    draw_list->AddCallback([](const ImDrawList* parent, const ImDrawCmd* cmd) {
+        // Draw settings button background
+        mono_color_shader.use();
+        mono_color_shader.uniform("model", settings.get_model());
+        mono_color_shader.uniform("color", glm::vec4(0.686f, 0.51f, 0.392f, 1.0f));
+        DrawHandler::draw(QUAD);
 
-    // Draw button border on top using same pos since quad VAO pivot is centered 
-    sprite_shader.uniform("model", border_model);
-    settings_border.bind();
-    DrawHandler::draw(QUAD);
+        // Draw settings icon on top
+        sprite_shader.use();
+        sprite_shader.uniform("brightness", is_hovered ? 1.2f : 1.0f);
 
+        sprite_shader.uniform("model", settings.get_model());
+        settings_texture.bind();
+        DrawHandler::draw(QUAD);
+
+        // Draw button border on top using same pos since quad VAO pivot is centered 
+        sprite_shader.uniform("model", border_model);
+        settings_border.bind();
+        DrawHandler::draw(QUAD);
+    });
+    draw_list->AddCallback(ImDrawCallback_ResetRenderState);
+
+    // Handling toggle state functionality (button)
     ImGui::SetCursorPos(button_pos);
     if (ImGui::InvisibleButton("##Settings", button_size)) {
-        std::cout << "Button pressed.\n";
+        is_active = !is_active;
+    }
+
+    if (ImGui::IsItemHovered()) {
+        is_hovered = true;
+    } else {
+        is_hovered = false;
+    }
+
+    if (is_active) {
+        ;
     }
 }
 

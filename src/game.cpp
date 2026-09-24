@@ -106,7 +106,7 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     // Textures
     // Only using texture unit 0 as far as progress has gone
     glActiveTexture(GL_TEXTURE0);
-    ResourceManager::textures.try_emplace("settings", (TEXTURE_DIR_PATH + "Settings1.png").c_str());
+    ResourceManager::textures.try_emplace("settings", (TEXTURE_DIR_PATH + "Settings.png").c_str());
     ResourceManager::textures.try_emplace("border",   (TEXTURE_DIR_PATH + "Border.png").c_str());
 
     // Drawables
@@ -149,11 +149,6 @@ void Game::finish()
     glfwDestroyWindow(ResourceManager::game_window);
     glfwTerminate();
 }
-
-// Compiler thing because I'll seldom find myself using scancode therefore will always be
-// getting compiler warnings about unused parameters here so I'm disabling that for this
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -253,5 +248,3 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
         }
     }
 }
-
-#pragma GCC diagnostic pop

@@ -33,6 +33,7 @@ add_compile_options(
     -Wshadow
     -Wunused
     -Wno-sign-compare
+    -Wno-unused-parameter
 )
 # add_compile_options(-O0)
 
