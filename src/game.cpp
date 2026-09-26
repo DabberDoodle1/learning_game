@@ -8,16 +8,60 @@
 #include "special/video_encoder.hpp"
 #endif
 
+#include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+
+bool cursor_not_in_frame = true;
+bool cursor_updated      = false;
 
 void draw_bg()
 {
     static Shader& bg_shader = ResourceManager::shaders.at("bg");
 
     bg_shader.use();
+    DrawHandler::draw(QUAD);
+}
+
+void draw_cursor()
+{
+    static Shader&  sprite_shader  = ResourceManager::shaders.at("sprite");
+    static Texture& cursor_texture = ResourceManager::textures.at("cursor");
+
+    static glm::mat4 cursor_model(
+        glm::scale(
+            glm::translate(
+                glm::mat4(1.0f),
+                glm::vec3(ResourceManager::cursor_x, ResourceManager::cursor_x, 0.0f)
+            ),
+            glm::vec3(12.0f, 20.0f, 1.0f)
+        )
+    );
+
+    if (cursor_not_in_frame) {
+        return;
+    }
+
+    if (cursor_updated) {
+        cursor_model = glm::scale(
+            glm::translate(
+                glm::mat4(1.0f),
+                glm::vec3(ResourceManager::cursor_x + 9.0f, ResourceManager::cursor_y + 15.0f, 0.0f)
+            ),
+            glm::vec3(12.0f, 20.0f, 1.0f)
+        );
+
+        cursor_updated = false;
+    }
+
+    sprite_shader.use();
+    sprite_shader.uniform("brightness", 1.0f);
+    sprite_shader.uniform("model", cursor_model);
+
+    cursor_texture.bind();
     DrawHandler::draw(QUAD);
 }
 
@@ -39,6 +83,10 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
     glfwSetKeyCallback(ResourceManager::game_window, key_callback);
+    glfwSetCursorPosCallback(ResourceManager::game_window, cursor_pos_callback);
+    glfwSetCursorEnterCallback(ResourceManager::game_window, cursor_enter_callback);
+    glfwSetInputMode(ResourceManager::game_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glViewport(0, 0, ResourceManager::game_width, ResourceManager::game_height);
@@ -46,8 +94,9 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-    ImGui::GetIO().IniFilename      = nullptr; // Disable Dear ImGui's data saving
-    ImGui::GetStyle().DisabledAlpha = 1.0f;
+    ImGui::GetIO().IniFilename       = nullptr; // Disable Dear ImGui's data saving
+    ImGui::GetIO().ConfigFlags      |= ImGuiConfigFlags_NoMouseCursorChange;
+    ImGui::GetStyle().DisabledAlpha  = 1.0f;
 
     ImGui_ImplGlfw_InitForOpenGL(ResourceManager::game_window, true);
     ImGui_ImplOpenGL3_Init("#version 450 core");
@@ -108,6 +157,7 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     glActiveTexture(GL_TEXTURE0);
     ResourceManager::textures.try_emplace("settings", (TEXTURE_DIR_PATH + "Settings.png").c_str());
     ResourceManager::textures.try_emplace("border",   (TEXTURE_DIR_PATH + "Border.png").c_str());
+    ResourceManager::textures.try_emplace("cursor",   (TEXTURE_DIR_PATH + "Cursor.png").c_str());
 
     // Drawables
     DrawHandler::init_VAOs();
@@ -129,6 +179,7 @@ void Game::run()
 
         draw_bg();
         GamemodeManager::draw_gui();
+        draw_cursor();
 
 #ifdef VIDEO_RECORDING
         encoder.add_frame();
@@ -247,4 +298,21 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
                 break;
         }
     }
+}
+
+void Game::cursor_enter_callback(GLFWwindow* window, int entered)
+{
+    if (entered) {
+        cursor_not_in_frame = false;
+    } else {
+        cursor_not_in_frame = true;
+    }
+}
+
+void Game::cursor_pos_callback(GLFWwindow* window, double _x, double _y)
+{
+    ResourceManager::cursor_x = _x;
+    ResourceManager::cursor_y = _y;
+
+    cursor_updated = true;
 }

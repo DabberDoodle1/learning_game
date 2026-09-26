@@ -20,6 +20,9 @@ GLFWwindow*  ResourceManager::game_window;
 unsigned int ResourceManager::game_width;
 unsigned int ResourceManager::game_height;
 
+double ResourceManager::cursor_x;
+double ResourceManager::cursor_y;
+
 void ResourceManager::clear()
 {
     shaders.clear();

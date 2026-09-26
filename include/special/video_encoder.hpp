@@ -25,6 +25,7 @@ private:
     AVFrame* frame;
     AVPacket* packet;
     SwsContext* sws_context;
+
     const int width;
     const int height;
 

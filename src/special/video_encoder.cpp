@@ -1,8 +1,8 @@
-#include "video_encoder.hpp"
+#include "special/video_encoder.hpp"
 
 #include <glad/glad.h> 
 
-VideoEncoder::VideoEncoder(const char* output_name, int width, int height, int framerate): width(width), height(height), frame_buffer(width * height * 3), frame_flipped_buffer(width * height * 3)
+VideoEncoder::VideoEncoder(const char* output_name, int _width, int _height, int framerate): width(_width), height(_height), frame_buffer(width * height * 3), frame_flipped_buffer(width * height * 3)
 {
     const AVCodec* codec = avcodec_find_encoder(AV_CODEC_ID_H264);
     codec_context = avcodec_alloc_context3(codec);
@@ -28,7 +28,7 @@ VideoEncoder::VideoEncoder(const char* output_name, int width, int height, int f
     stream->time_base = codec_context->time_base;
 
     avio_open(&format_context->pb, output_name, AVIO_FLAG_WRITE);
-    int ehh = avformat_write_header(format_context, nullptr);
+    avformat_write_header(format_context, nullptr);
 
     frame = av_frame_alloc();
     frame->format = AV_PIX_FMT_YUV420P;

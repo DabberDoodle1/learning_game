@@ -36,4 +36,8 @@ struct ResourceManager {
     static GLFWwindow*  game_window;
     static unsigned int game_width;
     static unsigned int game_height;
+
+    // Cursor data
+    static double cursor_x;
+    static double cursor_y;
 };
