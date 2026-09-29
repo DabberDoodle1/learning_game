@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <glad/glad.h>
 #include <glm/ext/matrix_transform.hpp>
 
 #include <algorithm>
@@ -14,7 +15,7 @@
 #include <iostream>
 #include <random>
 
-#define SCALING_FACTOR_FIX   ResourceManager::game_width * 0.0085f / 10.88f
+// #define SCALING_FACTOR_FIX   ResourceManager::game_width * 0.0085f / 10.88f
 
 // Gamemode
 bool                         GamemodeManager::is_inbetween_rounds    = false;
@@ -41,18 +42,18 @@ void GamemodeManager::init(const char* EN_file_path, const char* KR_file_path)
     ResourceManager::font_KR = IO.Fonts->AddFontFromFileTTF(KR_file_path);
 
     // Loading size of fonts in px
-    const float scaling_unit = ResourceManager::game_width * 0.01f;
+    const float scaling_factor = ResourceManager::game_width * 0.01f;
 
-    ResourceManager::font_sizes[0] = 0.8f  * scaling_unit;
-    ResourceManager::font_sizes[1] = 1.2f  * scaling_unit;
-    ResourceManager::font_sizes[2] = 1.8f  * scaling_unit;
-    ResourceManager::font_sizes[3] = 2.4f  * scaling_unit;
-    ResourceManager::font_sizes[4] = 3.0f  * scaling_unit;
-    ResourceManager::font_sizes[5] = 5.0f  * scaling_unit;
-    ResourceManager::font_sizes[6] = 8.0f  * scaling_unit;
-    ResourceManager::font_sizes[7] = 10.0f * scaling_unit;
-    ResourceManager::font_sizes[8] = 18.0f * scaling_unit;
-    ResourceManager::font_sizes[9] = 22.5f * scaling_unit;
+    ResourceManager::font_sizes[0] = 0.8f  * scaling_factor;
+    ResourceManager::font_sizes[1] = 1.2f  * scaling_factor;
+    ResourceManager::font_sizes[2] = 1.8f  * scaling_factor;
+    ResourceManager::font_sizes[3] = 2.4f  * scaling_factor;
+    ResourceManager::font_sizes[4] = 3.0f  * scaling_factor;
+    ResourceManager::font_sizes[5] = 5.0f  * scaling_factor;
+    ResourceManager::font_sizes[6] = 8.0f  * scaling_factor;
+    ResourceManager::font_sizes[7] = 10.0f * scaling_factor;
+    ResourceManager::font_sizes[8] = 18.0f * scaling_factor;
+    ResourceManager::font_sizes[9] = 22.5f * scaling_factor;
 
     IO.Fonts->Build();
 }
@@ -122,14 +123,30 @@ void GamemodeManager::draw_settings()
             glm::vec3(border_size.x, border_size.y, 1.0f)
         )
     );
-    static bool is_active  = false;
-    static bool is_hovered = false;
+    static bool is_active   = false;
+    static bool is_hovered  = false;
+    static bool settings_on = false;
 
     // Draw the visual button
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
+    // Handling toggle state functionality (button)
+    ImGui::SetCursorPos(button_pos);
+    if (ImGui::InvisibleButton("##Settings", button_size)) {
+        settings_on = !settings_on;
+    }
+
+    is_hovered = ImGui::IsItemHovered();
+    is_active  = ImGui::IsItemActive();
+
     // Adding the draw calls to Dear ImGui's window draw list so it renders as if it's part of it
     draw_list->AddCallback([](const ImDrawList* parent, const ImDrawCmd* cmd) {
+        int sampler = 0;
+        glGetIntegeri_v(GL_SAMPLER_BINDING, 0, &sampler);
+
+        // Set sampler to 0 because I don't want the preset ImGui sampler to use linear upscaling
+        glBindSampler(0, 0);
+
         // Draw settings button background
         mono_color_shader.use();
         mono_color_shader.uniform("model", settings.get_model());
@@ -138,7 +155,14 @@ void GamemodeManager::draw_settings()
 
         // Draw settings icon on top
         sprite_shader.use();
-        sprite_shader.uniform("brightness", is_hovered ? 1.2f : 1.0f);
+
+        if (is_active) {
+            sprite_shader.uniform("brightness", 1.15f);
+        } else if (is_hovered) {
+            sprite_shader.uniform("brightness", 1.0375f);
+        } else {
+            sprite_shader.uniform("brightness", 1.0f);
+        }
 
         sprite_shader.uniform("model", settings.get_model());
         settings_texture.bind();
@@ -148,23 +172,18 @@ void GamemodeManager::draw_settings()
         sprite_shader.uniform("model", border_model);
         settings_border.bind();
         DrawHandler::draw(QUAD);
+
+        glBindSampler(0, sampler);
     });
     draw_list->AddCallback(ImDrawCallback_ResetRenderState);
 
-    // Handling toggle state functionality (button)
-    ImGui::SetCursorPos(button_pos);
-    if (ImGui::InvisibleButton("##Settings", button_size)) {
-        is_active = !is_active;
-    }
+    if (settings_on) {
+        static const ImVec2 tab_size(ResourceManager::game_width * 0.4f, ResourceManager::game_height * 0.8f);
+        static const ImVec2 tab_pos1((ResourceManager::game_width - tab_size.x) * 0.5f, (ResourceManager::game_height - tab_size.y) * 0.5f);
+        static const ImVec2 tab_pos2((ResourceManager::game_width + tab_size.x) * 0.5f, (ResourceManager::game_height + tab_size.y) * 0.5f);
 
-    if (ImGui::IsItemHovered()) {
-        is_hovered = true;
-    } else {
-        is_hovered = false;
-    }
-
-    if (is_active) {
-        ;
+        ImGui::GetForegroundDrawList()->AddRectFilled(ImVec2(0.0f, 0.0f), ImVec2(ResourceManager::game_width, ResourceManager::game_height), IM_COL32(0, 0, 0, 127), 5.0f);
+        ImGui::GetForegroundDrawList()->AddRectFilled(tab_pos1, tab_pos2, IM_COL32(200, 180, 130, 255), 5.0f);
     }
 }
 
@@ -305,7 +324,7 @@ void GamemodeManager::MTW::draw_easy(const WordData* choices[4], const WordData*
 
     // Draw the options
     // Button settings
-    static const float  gap = 50.0f;
+    static const float  gap = 50.0f * ResourceManager::scaling_factor;
     static const ImVec2 button_size(ResourceManager::game_width * 0.3f, (ResourceManager::game_height * 0.5f - gap * 2) * 0.5f);
     static const ImVec2 pos[4] = {
         ImVec2(ResourceManager::game_width * 0.5f - button_size.x - gap * 0.5f,
@@ -326,9 +345,9 @@ void GamemodeManager::MTW::draw_easy(const WordData* choices[4], const WordData*
         if (is_inbetween_rounds) {
             bool is_correct = (choices[i] == correct);
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_Button, is_correct ? ImVec4(0.0f, 0.6f, 0.0f, 1.0f) : ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, is_correct ? ImVec4(0.0f, 0.6f, 0.0f, 1.0f) : ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_Text         , ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_Button       , is_correct ? ImVec4(0.0f, 0.6f, 0.0f, 1.0f) : ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive , is_correct ? ImVec4(0.0f, 0.6f, 0.0f, 1.0f) : ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, is_correct ? ImVec4(0.0f, 0.6f, 0.0f, 1.0f) : ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
 
             ImGui::BeginDisabled();
@@ -347,7 +366,8 @@ void GamemodeManager::MTW::draw_easy(const WordData* choices[4], const WordData*
 
                 ImGui::SetCursorPos(ImVec2(pos[i].x + (button_size.x - hover_size.x) * 0.5f, pos[i].y + button_size.y * 0.75f - hover_size.y * 0.5f));
                 if (!is_KR_or_EN) {
-                    ImGui::letter_spacing = 1.5f; // I added this property myself so it's not part of the official Dear ImGui repo
+                    // I added this property myself so it's not part of the official Dear ImGui repo
+                    ImGui::letter_spacing = 1.5f;
                     ImGui::Text(hover_text);
                     ImGui::letter_spacing = 0.0f;
                 } else {
@@ -374,7 +394,7 @@ void GamemodeManager::MTW::draw_easy(const WordData* choices[4], const WordData*
 void GamemodeManager::MTW::draw_easy_plus(const WordData* left_choices[4], const WordData* right_choices[4])
 {
     // Left and right side widget variables
-    static const float  gap         = 25.0f * SCALING_FACTOR_FIX;
+    static const float  gap         = 25.0f * ResourceManager::scaling_factor;
     static const ImVec2 widget_size = ImVec2(ResourceManager::game_width * 0.25f, (ResourceManager::game_height * 0.75f - 3 * gap) * 0.25f);
     static const ImVec2 left_pos[4] = {
         ImVec2(ResourceManager::game_width * 0.15f, ResourceManager::game_height * 0.125f),

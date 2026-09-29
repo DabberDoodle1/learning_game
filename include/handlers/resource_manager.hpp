@@ -40,4 +40,7 @@ struct ResourceManager {
     // Cursor data
     static double cursor_x;
     static double cursor_y;
+
+    // Scaling factor modifier (magical size constants are intended for 1280x720 resolution and this is to help scale those across differnet resolutions)
+    static float scaling_factor;
 };

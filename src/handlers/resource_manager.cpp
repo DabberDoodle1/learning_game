@@ -20,8 +20,11 @@ GLFWwindow*  ResourceManager::game_window;
 unsigned int ResourceManager::game_width;
 unsigned int ResourceManager::game_height;
 
+// Cursor data
 double ResourceManager::cursor_x;
 double ResourceManager::cursor_y;
+
+float ResourceManager::scaling_factor;
 
 void ResourceManager::clear()
 {

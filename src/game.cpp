@@ -37,7 +37,7 @@ void draw_cursor()
                 glm::mat4(1.0f),
                 glm::vec3(ResourceManager::cursor_x, ResourceManager::cursor_x, 0.0f)
             ),
-            glm::vec3(12.0f, 20.0f, 1.0f)
+            glm::vec3(12.0f, 20.0f, 1.0f) // Not adding a scaling fix yet to see whether cursor should shrink or not
         )
     );
 
@@ -67,8 +67,9 @@ void draw_cursor()
 
 void Game::setup(unsigned int width, unsigned int height, const char* title)
 {
-    ResourceManager::game_width  = width;
-    ResourceManager::game_height = height;
+    ResourceManager::game_width     = width;
+    ResourceManager::game_height    = height;
+    ResourceManager::scaling_factor = width / 1280.0f;
 
     // Setting up libraries
     glfwInit();
@@ -218,7 +219,7 @@ void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, i
         }
 
         // Handle pressed key
-        // Escape         = close game
+        // Escape = close game
         switch (key) {
             case GLFW_KEY_ESCAPE:
                 glfwSetWindowShouldClose(window, true);

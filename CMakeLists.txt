@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RULE_MESSAGES OFF)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+set(CMAKE_SUPPRESS_REGENERATION ON)   # I prefer manual reconfiguration
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -36,7 +37,6 @@ add_compile_options(
     -Wno-unused-result
     -Wno-sign-compare
 )
-# add_compile_options(-O0)
 
 add_executable("${CMAKE_PROJECT_NAME}")
 
