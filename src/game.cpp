@@ -117,15 +117,6 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
         1.0f
     );
 
-    // Words
-    WordDatabase::init();
-
-    // Fonts
-    GamemodeManager::init(
-        (FONT_DIR_PATH + "BebasNeue-Regular.ttf").c_str(),
-        (FONT_DIR_PATH + "NotoSansKR-Regular.ttf").c_str()
-    );
-
     // Shaders
     Shader& bg_shader = ResourceManager::shaders.try_emplace(
         "bg",
@@ -154,8 +145,7 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     mono_color_shader.uniform("projection", ResourceManager::projection);
 
     // Textures
-    // Only using texture unit 0 as far as progress has gone
-    glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0); // Only using texture unit 0 as far as progress has gone
     ResourceManager::textures.try_emplace("settings", (TEXTURE_DIR_PATH + "Settings.png").c_str());
     ResourceManager::textures.try_emplace("border",   (TEXTURE_DIR_PATH + "Border.png").c_str());
     ResourceManager::textures.try_emplace("cursor",   (TEXTURE_DIR_PATH + "Cursor.png").c_str());
@@ -166,6 +156,15 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
         "settings",
         ResourceManager::game_width * 31.0f / 32.0f, ResourceManager::game_width / 32.0f,
         ResourceManager::game_width / 32.0f,         ResourceManager::game_width / 32.0f
+    );
+
+    // Words
+    WordDatabase::init();
+
+    // Fonts
+    GamemodeManager::init(
+        (FONT_DIR_PATH + "BebasNeue-Regular.ttf").c_str(),
+        (FONT_DIR_PATH + "NotoSansKR-Regular.ttf").c_str()
     );
 }
 

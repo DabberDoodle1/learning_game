@@ -15,14 +15,12 @@
 #include <iostream>
 #include <random>
 
-// #define SCALING_FACTOR_FIX   ResourceManager::game_width * 0.0085f / 10.88f
-
 // Gamemode
 bool                         GamemodeManager::is_inbetween_rounds    = false;
 bool                         GamemodeManager::is_KR_or_EN            = false;
 bool                         GamemodeManager::is_typing              = false;
 bool                         GamemodeManager::should_shuffle_choices = true;
-GamemodeType                 GamemodeManager::gamemode               = MATCH_THE_WORD;
+GamemodeType                 GamemodeManager::gamemode               = LINK_THE_HANGEUL;
 
 // Settings
 unsigned int                 GamemodeManager::GamemodeSettings::cur_cat    = 0;
@@ -32,6 +30,9 @@ std::vector<const char*>     GamemodeManager::GamemodeSettings::selection[3];
 // TBA
 std::vector<std::string>     GamemodeManager::ATS::bodies;
 std::vector<const WordData*> GamemodeManager::ATS::blanks;
+
+const Shader* sprite_shader;
+const Shader* mono_color_shader;
 
 void GamemodeManager::init(const char* EN_file_path, const char* KR_file_path)
 {
@@ -52,10 +53,13 @@ void GamemodeManager::init(const char* EN_file_path, const char* KR_file_path)
     ResourceManager::font_sizes[5] = 5.0f  * scaling_factor;
     ResourceManager::font_sizes[6] = 8.0f  * scaling_factor;
     ResourceManager::font_sizes[7] = 10.0f * scaling_factor;
-    ResourceManager::font_sizes[8] = 18.0f * scaling_factor;
+    ResourceManager::font_sizes[8] = 14.0f * scaling_factor;
     ResourceManager::font_sizes[9] = 22.5f * scaling_factor;
 
     IO.Fonts->Build();
+
+    sprite_shader     = &ResourceManager::shaders.at("sprite");
+    mono_color_shader = &ResourceManager::shaders.at("mono_color");
 }
 
 void GamemodeManager::draw_gui()
@@ -74,17 +78,21 @@ void GamemodeManager::draw_gui()
         return;
     }
 
-    // Settings
-    draw_settings();
-
+    // Draw gamemode stuff first
     switch (gamemode) {
         case MATCH_THE_WORD:
-            draw_mtw_mode(GamemodeSettings::selection[2][GamemodeSettings::sel_ind[2]]);
+            draw_mtw(GamemodeSettings::selection[2][GamemodeSettings::sel_ind[2]]);
             break;
         case ARRANGE_THE_SENTENCE:
-            // draw_ats_mode(selected_word_group);
+            // draw_ats(selected_word_group);
+            break;
+        case LINK_THE_HANGEUL:
+            draw_lth();
             break;
     }
+
+    // Draw UI overlay on top
+    draw_settings();
 
     // Finish rendering
     ImGui::End();
@@ -96,8 +104,6 @@ void GamemodeManager::draw_settings()
 {
     // Draw settings button
     // Cache important constants and references to avoid overhead of fetching and calculating them every call
-    static const Shader&   sprite_shader     = ResourceManager::shaders.at("sprite");
-    static const Shader&   mono_color_shader = ResourceManager::shaders.at("mono_color");
     static const Texture&  settings_texture  = ResourceManager::textures.at("settings");
     static const Texture&  settings_border   = ResourceManager::textures.at("border");
     static const Drawable& settings          = ResourceManager::drawables.at("settings");
@@ -110,6 +116,7 @@ void GamemodeManager::draw_settings()
         settings.x - settings.w * 0.5f,
         settings.y - settings.h * 0.5f
     );
+
     static const ImVec2 border_size(
         settings.w * 18.0f / 16.0f,
         settings.h * 18.0f / 16.0f
@@ -123,6 +130,7 @@ void GamemodeManager::draw_settings()
             glm::vec3(border_size.x, border_size.y, 1.0f)
         )
     );
+
     static bool is_active   = false;
     static bool is_hovered  = false;
     static bool settings_on = false;
@@ -139,6 +147,16 @@ void GamemodeManager::draw_settings()
     is_hovered = ImGui::IsItemHovered();
     is_active  = ImGui::IsItemActive();
 
+    // Add some dark overlay
+    if (settings_on) {
+        static const ImVec2 tab_size(ResourceManager::game_width * 0.4f, ResourceManager::game_height * 0.8f);
+        static const ImVec2 tab_pos1((ResourceManager::game_width - tab_size.x) * 0.5f, (ResourceManager::game_height - tab_size.y) * 0.5f);
+        static const ImVec2 tab_pos2((ResourceManager::game_width + tab_size.x) * 0.5f, (ResourceManager::game_height + tab_size.y) * 0.5f);
+
+        draw_list->AddRectFilled(ImVec2(0.0f, 0.0f), ImVec2(ResourceManager::game_width, ResourceManager::game_height), IM_COL32(0, 0, 0, 127), 5.0f);
+        draw_list->AddRectFilled(tab_pos1, tab_pos2, IM_COL32(200, 180, 130, 255), 5.0f);
+    }
+
     // Adding the draw calls to Dear ImGui's window draw list so it renders as if it's part of it
     draw_list->AddCallback([](const ImDrawList* parent, const ImDrawCmd* cmd) {
         int sampler = 0;
@@ -148,46 +166,37 @@ void GamemodeManager::draw_settings()
         glBindSampler(0, 0);
 
         // Draw settings button background
-        mono_color_shader.use();
-        mono_color_shader.uniform("model", settings.get_model());
-        mono_color_shader.uniform("color", glm::vec4(0.686f, 0.51f, 0.392f, 1.0f));
+        mono_color_shader->use();
+        mono_color_shader->uniform("model", settings.get_model());
+        mono_color_shader->uniform("color", glm::vec4(0.686f, 0.51f, 0.392f, 1.0f));
         DrawHandler::draw(QUAD);
 
         // Draw settings icon on top
-        sprite_shader.use();
+        sprite_shader->use();
 
         if (is_active) {
-            sprite_shader.uniform("brightness", 1.15f);
+            sprite_shader->uniform("brightness", 1.15f);
         } else if (is_hovered) {
-            sprite_shader.uniform("brightness", 1.0375f);
+            sprite_shader->uniform("brightness", 1.0375f);
         } else {
-            sprite_shader.uniform("brightness", 1.0f);
+            sprite_shader->uniform("brightness", 1.0f);
         }
 
-        sprite_shader.uniform("model", settings.get_model());
+        sprite_shader->uniform("model", settings.get_model());
         settings_texture.bind();
         DrawHandler::draw(QUAD);
 
         // Draw button border on top using same pos since quad VAO pivot is centered 
-        sprite_shader.uniform("model", border_model);
+        sprite_shader->uniform("model", border_model);
         settings_border.bind();
         DrawHandler::draw(QUAD);
 
         glBindSampler(0, sampler);
     });
     draw_list->AddCallback(ImDrawCallback_ResetRenderState);
-
-    if (settings_on) {
-        static const ImVec2 tab_size(ResourceManager::game_width * 0.4f, ResourceManager::game_height * 0.8f);
-        static const ImVec2 tab_pos1((ResourceManager::game_width - tab_size.x) * 0.5f, (ResourceManager::game_height - tab_size.y) * 0.5f);
-        static const ImVec2 tab_pos2((ResourceManager::game_width + tab_size.x) * 0.5f, (ResourceManager::game_height + tab_size.y) * 0.5f);
-
-        ImGui::GetForegroundDrawList()->AddRectFilled(ImVec2(0.0f, 0.0f), ImVec2(ResourceManager::game_width, ResourceManager::game_height), IM_COL32(0, 0, 0, 127), 5.0f);
-        ImGui::GetForegroundDrawList()->AddRectFilled(tab_pos1, tab_pos2, IM_COL32(200, 180, 130, 255), 5.0f);
-    }
 }
 
-void GamemodeManager::draw_mtw_mode(const char* group_name)
+void GamemodeManager::draw_mtw(const char* group_name)
 {
     static const WordData* easy_choices[4];
     static const WordData* right_choices[4];
@@ -253,10 +262,105 @@ void GamemodeManager::draw_mtw_mode(const char* group_name)
     }
 }
 
-// void GamemodeManager::draw_ats_mode(const char* group_name)
+// void GamemodeManager::draw_ats(const char* group_name)
 // {
 //     // anime (Not yet added)
 // }
+
+void GamemodeManager::draw_lth()
+{
+    // Character box
+    ImGui::GetWindowDrawList()->AddCallback([](const ImDrawList* parent, const ImDrawCmd* cmd) {
+        static glm::mat4 char_box_model = []{
+            const glm::vec3 size_vec(ResourceManager::game_width * 0.7f, ResourceManager::game_height * 0.55f, 1.0f);
+            const glm::vec3 pos_vec(ResourceManager::game_width * 0.5f, ResourceManager::game_height * 0.95f - size_vec.y * 0.5f, 0.0f);
+
+            glm::mat4 model;
+
+            model = glm::translate(glm::mat4(1.0f), pos_vec);
+            model = glm::scale(model, size_vec);
+
+            return model;
+        }();
+        static glm::vec4 char_box_bg_color(100.0f / 255.0f, 80.0f / 255.0f, 70.0f / 255.0f, 1.0f);
+
+        mono_color_shader->use();
+        mono_color_shader->uniform("model", char_box_model);
+        mono_color_shader->uniform("color", char_box_bg_color);
+
+        DrawHandler::draw(QUAD);
+    });
+    ImGui::GetWindowDrawList()->AddCallback(ImDrawCallback_ResetRenderState);
+
+    // Word
+    ImGui::PushFont(ResourceManager::font_KR, ResourceManager::font_sizes[8]);
+
+    static ImVec2 word_size = ImGui::CalcTextSize("페니스");
+    static ImVec2 word_pos((ResourceManager::game_width - word_size.x) * 0.5f, (ResourceManager::game_height * 0.4f - word_size.y) * 0.5f);
+
+    ImGui::SetCursorPos(word_pos);
+    ImGui::Text("페니스");
+
+    ImGui::PopFont();
+    ImGui::PushFont(ResourceManager::font_KR, ResourceManager::font_sizes[5]);
+
+    static const char* words[] = {
+        // "Anime",
+        // "Chungus",
+        // "Ubungus",
+        // "Zhuangus Fangus"
+        "아니메",
+        "청구스",
+        "우붕구스",
+        "주앙구스 팡구스"
+    };
+    static const char* chars[] = {
+        "아", "니", "메",
+        "청", "구", "스",
+        "우", "붕", "구", "스",
+        "주", "앙", "구", "스", "팡", "구", "스",
+        "P"
+    };
+    static const ImVec2 sizes[] = {
+        ImGui::CalcTextSize("아"), ImGui::CalcTextSize("니"), ImGui::CalcTextSize("메"),
+        ImGui::CalcTextSize("청"), ImGui::CalcTextSize("구"), ImGui::CalcTextSize("스"),
+        ImGui::CalcTextSize("우"), ImGui::CalcTextSize("붕"), ImGui::CalcTextSize("구"), ImGui::CalcTextSize("스"),
+        ImGui::CalcTextSize("주"), ImGui::CalcTextSize("앙"), ImGui::CalcTextSize("구"), ImGui::CalcTextSize("스"), ImGui::CalcTextSize("팡"), ImGui::CalcTextSize("구"), ImGui::CalcTextSize("스"),
+        ImGui::CalcTextSize("P")
+    };
+    static ImVec2 pos[17];
+
+    static bool                                  should_shuffle = true;
+    static std::mt19937                          gen(std::random_device{}());
+    static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+    if (should_shuffle) {
+        should_shuffle = false;
+
+        float max_x = sizes[0].x;
+        float max_y = sizes[0].y;
+
+        for (unsigned int i = 1; i < 18; ++i) {
+            max_x = (sizes[i].x > max_x) ? sizes[i].x : max_x;
+            max_y = (sizes[i].y > max_y) ? sizes[i].y : max_y;
+        }
+
+        std::cout << max_x << ' ' << max_y << '\n';
+
+        for (unsigned int i = 0; i < 18; ++i) {
+            pos[i].x = ResourceManager::game_width  * 0.15f + max_x * 0.75f + dist(gen) * (ResourceManager::game_width  * 0.70f - max_x * 1.5f) - sizes[i].x * 0.5f;
+            pos[i].y = ResourceManager::game_height * 0.4f  + max_y * 0.5f  + dist(gen) * (ResourceManager::game_height * 0.55f - max_y) - sizes[i].y * 0.5f;
+        }
+    }
+
+
+    for (unsigned int i = 0; i < 18; ++i) {
+        ImGui::SetCursorPos(pos[i]);
+        ImGui::Text(chars[i]);
+    }
+
+    ImGui::PopFont();
+}
 
 void GamemodeManager::MTW::shuffle_choices(const char* group_name, const WordData* (&choices)[4])
 {

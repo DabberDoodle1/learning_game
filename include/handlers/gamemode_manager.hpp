@@ -6,7 +6,8 @@
 
 enum GamemodeType {
     MATCH_THE_WORD,
-    ARRANGE_THE_SENTENCE
+    ARRANGE_THE_SENTENCE,
+    LINK_THE_HANGEUL
 };
 
 enum DifficultyLevel {
@@ -40,37 +41,38 @@ public:
 
 private:
     static void draw_settings();
-    static void draw_mtw_mode(const char* group_name);
-    // static void        draw_ats_mode(const char* group_name);
+    static void draw_mtw(const char* group_name);
+    // static void        draw_ats(const char* group_name);
+    static void draw_lth();
+
+    // GAMEMODE TYPES AND DIFFICULTY settings
+    // Match The Word:
+    // - EASY
+    //    1 word in KR/EN with 4 options in the other language and match the right one.
+    // - EASY+
+    //    4 words in KR/EN with 4 options in the other language and match everyone with their corresponding answer.
+    //    + Conjugations
+    // - MEDIUM
+    //    1 word in KR/EN with textbox input to type the correct answer itself.
+    // - MEDIUM+
+    //    2–4 word phrases in KR/EN with textbox input.
+    // - HARD
+    //    MANY words in KR and EN to be matched to pre-made set of options and type in the missing ones.
+    //    + Maybe with gravity.
+    //
+    // ARRANGE_THE_SENTENCE:
+    // - EASY
+    //    T.B.A.
+    // - EASY+
+    //    T.B.A.
+    // - MEDIUM
+    //    T.B.A.
+    // - MEDIUM+
+    //    T.B.A.
+    // - HARD
+    //    T.B.A.
 
     struct MTW {
-        // GAMEMODE TYPES AND DIFFICULTY settings
-        // Match The Word:
-        // - EASY
-        //    1 word in KR/EN with 4 options in the other language and match the right one.
-        // - EASY+
-        //    4 words in KR/EN with 4 options in the other language and match everyone with their corresponding answer.
-        //    + Conjugations
-        // - MEDIUM
-        //    1 word in KR/EN with textbox input to type the correct answer itself.
-        // - MEDIUM+
-        //    2–4 word phrases in KR/EN with textbox input.
-        // - HARD
-        //    MANY words in KR and EN to be matched to pre-made set of options and type in the missing ones.
-        //    + Maybe with gravity.
-        //
-        // ARRANGE_THE_SENTENCE:
-        // - EASY
-        //    T.B.A.
-        // - EASY+
-        //    T.B.A.
-        // - MEDIUM
-        //    T.B.A.
-        // - MEDIUM+
-        //    T.B.A.
-        // - HARD
-        //    T.B.A.
-
         static void draw_easy(const WordData* choices[4], const WordData* correct);
         static void draw_easy_plus(const WordData* left_choices[4], const WordData* right_choices[4]);
         static void draw_medium(const char* group_name, const WordData*& correct);

@@ -36,6 +36,7 @@ add_compile_options(
     -Wno-unused-parameter
     -Wno-unused-result
     -Wno-sign-compare
+    -Wno-format-security
 )
 
 add_executable("${CMAKE_PROJECT_NAME}")
