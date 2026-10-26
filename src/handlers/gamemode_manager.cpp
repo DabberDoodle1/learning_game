@@ -12,7 +12,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <iostream>
 #include <random>
 
 // Gamemode
@@ -140,7 +139,7 @@ void GamemodeManager::draw_settings()
 
     // Handling toggle state functionality (button)
     ImGui::SetCursorPos(button_pos);
-    if (ImGui::InvisibleButton("##Settings", button_size)) {
+    if (ImGui::Button("##Settings", button_size)) {
         settings_on = !settings_on;
     }
 
@@ -269,97 +268,22 @@ void GamemodeManager::draw_mtw(const char* group_name)
 
 void GamemodeManager::draw_lth()
 {
-    // Character box
-    ImGui::GetWindowDrawList()->AddCallback([](const ImDrawList* parent, const ImDrawCmd* cmd) {
-        static glm::mat4 char_box_model = []{
-            const glm::vec3 size_vec(ResourceManager::game_width * 0.7f, ResourceManager::game_height * 0.55f, 1.0f);
-            const glm::vec3 pos_vec(ResourceManager::game_width * 0.5f, ResourceManager::game_height * 0.95f - size_vec.y * 0.5f, 0.0f);
+    static const float padding = ResourceManager::game_width >> 5;
 
-            glm::mat4 model;
+    static const ImVec2 left_box_size(
+        ResourceManager::game_width * 28.0f / 32.0f,
+        ResourceManager::game_height - padding * 3.0f
+    );
+    static const ImVec2 left_box_min(
+        padding * 2.0f,
+        padding * 1.5f
+    );
+    static const ImVec2 left_box_max(
+        left_box_min.x + left_box_size.x,
+        left_box_min.y + left_box_size.y
+    );
 
-            model = glm::translate(glm::mat4(1.0f), pos_vec);
-            model = glm::scale(model, size_vec);
-
-            return model;
-        }();
-        static glm::vec4 char_box_bg_color(100.0f / 255.0f, 80.0f / 255.0f, 70.0f / 255.0f, 1.0f);
-
-        mono_color_shader->use();
-        mono_color_shader->uniform("model", char_box_model);
-        mono_color_shader->uniform("color", char_box_bg_color);
-
-        DrawHandler::draw(QUAD);
-    });
-    ImGui::GetWindowDrawList()->AddCallback(ImDrawCallback_ResetRenderState);
-
-    // Word
-    ImGui::PushFont(ResourceManager::font_KR, ResourceManager::font_sizes[8]);
-
-    static ImVec2 word_size = ImGui::CalcTextSize("페니스");
-    static ImVec2 word_pos((ResourceManager::game_width - word_size.x) * 0.5f, (ResourceManager::game_height * 0.4f - word_size.y) * 0.5f);
-
-    ImGui::SetCursorPos(word_pos);
-    ImGui::Text("페니스");
-
-    ImGui::PopFont();
-    ImGui::PushFont(ResourceManager::font_KR, ResourceManager::font_sizes[5]);
-
-    static const char* words[] = {
-        // "Anime",
-        // "Chungus",
-        // "Ubungus",
-        // "Zhuangus Fangus"
-        "아니메",
-        "청구스",
-        "우붕구스",
-        "주앙구스 팡구스"
-    };
-    static const char* chars[] = {
-        "아", "니", "메",
-        "청", "구", "스",
-        "우", "붕", "구", "스",
-        "주", "앙", "구", "스", "팡", "구", "스",
-        "P"
-    };
-    static const ImVec2 sizes[] = {
-        ImGui::CalcTextSize("아"), ImGui::CalcTextSize("니"), ImGui::CalcTextSize("메"),
-        ImGui::CalcTextSize("청"), ImGui::CalcTextSize("구"), ImGui::CalcTextSize("스"),
-        ImGui::CalcTextSize("우"), ImGui::CalcTextSize("붕"), ImGui::CalcTextSize("구"), ImGui::CalcTextSize("스"),
-        ImGui::CalcTextSize("주"), ImGui::CalcTextSize("앙"), ImGui::CalcTextSize("구"), ImGui::CalcTextSize("스"), ImGui::CalcTextSize("팡"), ImGui::CalcTextSize("구"), ImGui::CalcTextSize("스"),
-        ImGui::CalcTextSize("P")
-    };
-    static ImVec2 pos[17];
-
-    static bool                                  should_shuffle = true;
-    static std::mt19937                          gen(std::random_device{}());
-    static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-
-    if (should_shuffle) {
-        should_shuffle = false;
-
-        float max_x = sizes[0].x;
-        float max_y = sizes[0].y;
-
-        for (unsigned int i = 1; i < 18; ++i) {
-            max_x = (sizes[i].x > max_x) ? sizes[i].x : max_x;
-            max_y = (sizes[i].y > max_y) ? sizes[i].y : max_y;
-        }
-
-        std::cout << max_x << ' ' << max_y << '\n';
-
-        for (unsigned int i = 0; i < 18; ++i) {
-            pos[i].x = ResourceManager::game_width  * 0.15f + max_x * 0.75f + dist(gen) * (ResourceManager::game_width  * 0.70f - max_x * 1.5f) - sizes[i].x * 0.5f;
-            pos[i].y = ResourceManager::game_height * 0.4f  + max_y * 0.5f  + dist(gen) * (ResourceManager::game_height * 0.55f - max_y) - sizes[i].y * 0.5f;
-        }
-    }
-
-
-    for (unsigned int i = 0; i < 18; ++i) {
-        ImGui::SetCursorPos(pos[i]);
-        ImGui::Text(chars[i]);
-    }
-
-    ImGui::PopFont();
+    ImGui::GetWindowDrawList()->AddRectFilled(left_box_min, left_box_max, IM_COL32(175, 130, 100, 255));
 }
 
 void GamemodeManager::MTW::shuffle_choices(const char* group_name, const WordData* (&choices)[4])

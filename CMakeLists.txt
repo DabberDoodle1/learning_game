@@ -112,6 +112,8 @@ set(
     "${CMAKE_SOURCE_DIR}/src/resources/shader.cpp"
     "${CMAKE_SOURCE_DIR}/src/resources/texture.cpp"
 
+    "${CMAKE_SOURCE_DIR}/src/scenes/starting_menu.cpp"
+
     "${CMAKE_SOURCE_DIR}/src/stb_image.c"
 )
 

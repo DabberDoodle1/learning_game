@@ -3,6 +3,8 @@
 #include "handlers/gamemode_manager.hpp"
 #include "handlers/resource_manager.hpp"
 #include "handlers/words_database.hpp"
+#include "scenes/starting_menu.hpp"
+#include <memory>
 
 #ifdef VIDEO_RECORDING
 #include "special/video_encoder.hpp"
@@ -35,7 +37,7 @@ void draw_cursor()
         glm::scale(
             glm::translate(
                 glm::mat4(1.0f),
-                glm::vec3(ResourceManager::cursor_x, ResourceManager::cursor_x, 0.0f)
+                glm::vec3(ResourceManager::cursor_x, ResourceManager::cursor_y, 0.0f)
             ),
             glm::vec3(12.0f, 20.0f, 1.0f) // Not adding a scaling fix yet to see whether cursor should shrink or not
         )
@@ -49,7 +51,7 @@ void draw_cursor()
         cursor_model = glm::scale(
             glm::translate(
                 glm::mat4(1.0f),
-                glm::vec3(ResourceManager::cursor_x + 9.0f, ResourceManager::cursor_y + 15.0f, 0.0f)
+                glm::vec3(ResourceManager::cursor_x + 6.0f, ResourceManager::cursor_y + 10.0f, 0.0f)
             ),
             glm::vec3(12.0f, 20.0f, 1.0f)
         );
@@ -67,9 +69,9 @@ void draw_cursor()
 
 void Game::setup(unsigned int width, unsigned int height, const char* title)
 {
-    ResourceManager::game_width     = width;
-    ResourceManager::game_height    = height;
-    ResourceManager::scaling_factor = width / 1280.0f;
+    // ResourceManager::game_width     = width;
+    // ResourceManager::game_height    = height;
+    // ResourceManager::scaling_factor = width / 1280.0f;
 
     // Setting up libraries
     glfwInit();
@@ -77,7 +79,14 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    ResourceManager::game_window = glfwCreateWindow(ResourceManager::game_width, ResourceManager::game_height, title, nullptr, nullptr);
+    GLFWmonitor* monitor    = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    // ResourceManager::game_window = glfwCreateWindow(1600, 900, title, nullptr, nullptr);
+    ResourceManager::game_window = glfwCreateWindow(mode->width, mode->height, title, monitor, nullptr);
+    ResourceManager::game_width     = mode->width;
+    ResourceManager::game_height    = mode->height;
+    ResourceManager::scaling_factor = mode->width / 1280.0f;
 
     glfwMakeContextCurrent(ResourceManager::game_window);
     glfwSwapInterval(1);
@@ -158,6 +167,9 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
         ResourceManager::game_width / 32.0f,         ResourceManager::game_width / 32.0f
     );
 
+    // Set scene
+    ResourceManager::active_scene = std::make_unique<StartingMenu>();
+
     // Words
     WordDatabase::init();
 
@@ -178,7 +190,9 @@ void Game::run()
         glfwPollEvents();
 
         draw_bg();
-        GamemodeManager::draw_gui();
+        // GamemodeManager::draw_gui();
+        
+        ResourceManager::active_scene->run();
         draw_cursor();
 
 #ifdef VIDEO_RECORDING

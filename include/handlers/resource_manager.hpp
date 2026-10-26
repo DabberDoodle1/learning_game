@@ -3,13 +3,16 @@
 #include "resources/drawable.hpp"
 #include "resources/shader.hpp"
 #include "resources/texture.hpp"
+#include "scenes/scene.hpp"
 
 #include "imgui.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glm/ext/matrix_float4x4.hpp>
+
 #include <map>
+#include <memory>
 #include <string>
 
 struct ResourceManager {
@@ -29,18 +32,21 @@ struct ResourceManager {
     static ImFont*      font_KR;
     static float        font_sizes[10];
 
-    // Orthographic matrix for proper positioning and sizing
+    // Universal orthographic projection matrix
     static glm::mat4    projection;
 
-    // Window data
+    // Window
     static GLFWwindow*  game_window;
-    static unsigned int game_width;
-    static unsigned int game_height;
+    static int          game_width;
+    static int          game_height;
 
-    // Cursor data
+    // Cursor
     static double cursor_x;
     static double cursor_y;
 
-    // Scaling factor modifier (magical size constants are intended for 1280x720 resolution and this is to help scale those across differnet resolutions)
+    // Scaling factor modifier - magic number sizes are intended for 1280x720 resolution and this is for scaling across differnet resolutions.
     static float scaling_factor;
+
+    // Scene
+    static std::unique_ptr<Scene> active_scene;
 };

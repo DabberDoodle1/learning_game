@@ -2,29 +2,26 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 
-// OpenGL resources
 std::map<std::string, Shader>   ResourceManager::shaders;
 std::map<std::string, Texture>  ResourceManager::textures;
 std::map<std::string, Drawable> ResourceManager::drawables;
 
-// Fonts
 ImFont*      ResourceManager::font_EN;
 ImFont*      ResourceManager::font_KR;
 float        ResourceManager::font_sizes[10];
 
-// Universal rendering matrices
 glm::mat4    ResourceManager::projection;
 
-// Window data
 GLFWwindow*  ResourceManager::game_window;
-unsigned int ResourceManager::game_width;
-unsigned int ResourceManager::game_height;
+int          ResourceManager::game_width;
+int          ResourceManager::game_height;
 
-// Cursor data
 double ResourceManager::cursor_x;
 double ResourceManager::cursor_y;
 
 float ResourceManager::scaling_factor;
+
+std::unique_ptr<Scene> ResourceManager::active_scene;
 
 void ResourceManager::clear()
 {

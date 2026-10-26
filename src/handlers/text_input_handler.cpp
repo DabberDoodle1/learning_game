@@ -768,8 +768,3 @@ std::string TextInputHandler::get_text()
 
     return text;
 }
-
-// bool TextInputHandler::draw_medium_plus_textbox(const WordData* data)
-// {
-//     return false; // Not yet added
-// }
