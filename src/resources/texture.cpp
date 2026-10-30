@@ -15,7 +15,7 @@ Texture::Texture(const char* texture_path)
     unsigned char* data = stbi_load(texture_path, &width, &height, &channel_count, 4);
 
     if (!data) {
-        std::cerr << "Failed to load image: " << stbi_failure_reason() << std::endl;
+        std::cerr << "Failed to load image(" << texture_path << "): " << stbi_failure_reason() << std::endl;
         return;
     }
 

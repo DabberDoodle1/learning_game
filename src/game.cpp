@@ -67,23 +67,18 @@ void draw_cursor()
     DrawHandler::draw(QUAD);
 }
 
-void Game::setup(unsigned int width, unsigned int height, const char* title)
+void Game::setup(const char* title)
 {
-    // ResourceManager::game_width     = width;
-    // ResourceManager::game_height    = height;
-    // ResourceManager::scaling_factor = width / 1280.0f;
-
     // Setting up libraries
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWmonitor* monitor    = glfwGetPrimaryMonitor();
-    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
 
-    // ResourceManager::game_window = glfwCreateWindow(1600, 900, title, nullptr, nullptr);
-    ResourceManager::game_window = glfwCreateWindow(mode->width, mode->height, title, monitor, nullptr);
+    ResourceManager::game_window    = glfwCreateWindow(mode->width, mode->height, title, monitor, nullptr);
     ResourceManager::game_width     = mode->width;
     ResourceManager::game_height    = mode->height;
     ResourceManager::scaling_factor = mode->width / 1280.0f;
@@ -158,6 +153,7 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
     ResourceManager::textures.try_emplace("settings", (TEXTURE_DIR_PATH + "Settings.png").c_str());
     ResourceManager::textures.try_emplace("border",   (TEXTURE_DIR_PATH + "Border.png").c_str());
     ResourceManager::textures.try_emplace("cursor",   (TEXTURE_DIR_PATH + "Cursor.png").c_str());
+    ResourceManager::textures.try_emplace("brochaco", (TEXTURE_DIR_PATH + "Brochaco.png").c_str());
 
     // Drawables
     DrawHandler::init_VAOs();
@@ -165,6 +161,11 @@ void Game::setup(unsigned int width, unsigned int height, const char* title)
         "settings",
         ResourceManager::game_width * 31.0f / 32.0f, ResourceManager::game_width / 32.0f,
         ResourceManager::game_width / 32.0f,         ResourceManager::game_width / 32.0f
+    );
+    ResourceManager::drawables.try_emplace(
+        "brochaco",
+        ResourceManager::game_width * 0.5f - 1, ResourceManager::game_height * 0.5f - 1,
+        ResourceManager::game_width / 8.0f + 2, ResourceManager::game_width / 8.0f + 2
     );
 
     // Set scene

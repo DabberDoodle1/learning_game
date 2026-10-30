@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 
 namespace Game {
-    void setup(unsigned int width, unsigned int height, const char* title);
+    void setup(const char* title);
     void run();
     void finish();
 
